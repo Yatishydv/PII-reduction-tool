@@ -69,11 +69,11 @@ class NERDetector(BaseDetector):
         self._load_model()
 
     def _load_model(self) -> None:
-        """Load the spaCy NLP model. Called once during initialisation."""
+        """Load the spaCy NLP model efficiently with only NER enabled."""
         try:
             import spacy  # type: ignore[import]
-            self._nlp = spacy.load(self._model_name)
-            logger.info("Loaded spaCy model: %s", self._model_name)
+            self._nlp = spacy.load(self._model_name, disable=["parser", "lemmatizer", "attribute_ruler"])
+            logger.info("Loaded lightweight spaCy NER model: %s", self._model_name)
         except Exception as exc:
             logger.error("Failed to load spaCy model %r: %s", self._model_name, exc)
             raise RuntimeError(
@@ -204,6 +204,8 @@ class NERDetector(BaseDetector):
             )
 
         if len(text_stripped) < 200:
+            if len(self._cache) > 200:
+                self._cache.clear()
             self._cache[text_stripped] = entities
 
         return entities

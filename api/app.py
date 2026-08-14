@@ -248,6 +248,8 @@ async def analyze_document(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(exc))
     finally:
         tmp_input_path.unlink(missing_ok=True)
+        import gc
+        gc.collect()
 
 
 @app.post("/redact")
