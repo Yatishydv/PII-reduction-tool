@@ -1164,7 +1164,7 @@ curl -X POST "http://localhost:8000/redact" \
       `;
     }
 
-    // Workflow: Clicking "Analyze Document" starts smooth dynamic progress 0% -> 100%
+    // Workflow: Clicking "Analyze Document" starts smooth continuous progress 0% -> 100%
     async function startAnalysisWorkflow() {
       if (!docFileInput.files[0]) return;
       const file = docFileInput.files[0];
@@ -1193,31 +1193,36 @@ curl -X POST "http://localhost:8000/redact" \
       const formData = new FormData();
       formData.append('file', file);
 
-      // Smooth continuous ticker that animates progress during processing
+      // Continuous dynamic ticker up to 99% so progress bar NEVER freezes
       let currentStage = 10;
       const progressTicker = setInterval(() => {
-        if (currentStage < 95) {
-          currentStage += Math.floor(Math.random() * 4) + 1;
-          if (currentStage > 95) currentStage = 95;
-          
+        if (currentStage < 99) {
+          currentStage += 1;
           let stageMsg = 'Parsing XML paragraphs & table structures...';
-          if (currentStage > 40) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
-          if (currentStage > 70) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
+          if (currentStage > 35) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
+          if (currentStage > 65) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
+          if (currentStage > 88) stageMsg = 'Finalizing preview rendering & metrics report...';
+          if (currentStage >= 98) stageMsg = 'Almost ready...';
           
           updateProgress(currentStage, stageMsg);
         }
-      }, 120);
+      }, 100);
+
+      // AbortController timeout (20 seconds)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
       try {
-        const res = await fetch('/analyze', { method: 'POST', body: formData });
+        const res = await fetch('/analyze', { method: 'POST', body: formData, signal: controller.signal });
+        clearTimeout(timeoutId);
         clearInterval(progressTicker);
 
-        if (!res.ok) throw new Error('Analysis request failed');
+        if (!res.ok) throw new Error('Analysis request failed (Status ' + res.status + ')');
 
         const data = await res.json();
 
         updateProgress(100, 'Analysis complete!');
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 150));
         
         progressContainer.style.display = 'none';
         document.getElementById('statusBadge').textContent = 'Completed';
@@ -1259,10 +1264,15 @@ curl -X POST "http://localhost:8000/redact" \
         renderLogTable(allReplacements);
 
       } catch (err) {
+        clearTimeout(timeoutId);
         clearInterval(progressTicker);
         progressContainer.style.display = 'none';
         btnAnalyze.disabled = false;
-        alert('File Analysis Error: ' + err.message);
+        if (err.name === 'AbortError') {
+          alert('⚠️ Request Timed Out: Render free instance is waking up. Please click "Analyze Document" once more!');
+        } else {
+          alert('File Analysis Error: ' + err.message);
+        }
       }
     }
 

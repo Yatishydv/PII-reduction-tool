@@ -192,8 +192,8 @@ async def analyze_document(file: UploadFile = File(...)):
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
 
-        # Process tables efficiently using fast XPath text node extraction
-        for table in doc.tables:
+        # Process tables efficiently using fast XPath text node extraction (first 25 key tables for instant UI response)
+        for table in doc.tables[:25]:
             table_text = " ".join(node.text for node in table._element.xpath('.//w:t') if node.text)
             if table_text.strip():
                 _, entities = _redactor.redact(table_text)
