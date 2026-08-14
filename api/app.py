@@ -173,6 +173,7 @@ async def analyze_document(
         tmp_in.write(content)
         tmp_input_path = Path(tmp_in.name)
 
+    try:
         import zipfile
         import xml.etree.ElementTree as ET
 
