@@ -1202,7 +1202,7 @@ curl -X POST "http://localhost:8000/redact" \
           let stageMsg = 'Parsing XML paragraphs & table structures...';
           if (currentStage > 30) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
           if (currentStage > 60) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
-          if (currentStage > 85) stageMsg = 'Finalizing 70-page preview rendering & metrics report...';
+          if (currentStage > 85) stageMsg = 'Finalizing document preview rendering & metrics report...';
           
           updateProgress(currentStage, stageMsg);
         }

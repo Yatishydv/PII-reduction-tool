@@ -169,9 +169,16 @@ async def analyze_document(file: UploadFile = File(...)):
                     if text_parts:
                         paragraphs_raw.append("".join(text_parts))
 
-        # Process all paragraphs across all pages of the document
+        # Process paragraphs across all pages of the document
         for txt in paragraphs_raw:
-            if not txt.strip():
+            clean_txt = txt.strip()
+            if not clean_txt or len(clean_txt) < 2:
+                continue
+
+            # Fast pre-check: skip pure numbers, dashes, percentages, and financial table cells
+            if clean_txt.replace(",", "").replace(".", "").replace("-", "").replace("%", "").isdigit():
+                preview_paragraphs.append(html.escape(txt))
+                redacted_paragraphs.append(txt)
                 continue
 
             redacted, entities = _redactor.redact(txt)
