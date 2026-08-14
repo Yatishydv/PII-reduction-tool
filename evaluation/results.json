@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "title": "PII Redaction Tool - Evaluation Report",
+    "candidate": "Yatish Kumar",
+    "role": "Environment Data Intern Role",
+    "organization": "Scaler AI Labs",
+    "timestamp": "2026-08-14 11:05:23",
+    "commit": "4e5f0f75dda58ed933781c4e06f07cc00f841e91",
+    "status": "PASSED_ALL_CHECKS"
+  },
+  "real_document_evaluation": {
+    "source_document": "Red Herring Prospectus.docx",
+    "total_cases": 26,
+    "tp": 23,
+    "tn": 104,
+    "fp": 6,
+    "fn": 3,
+    "accuracy": 0.9338,
+    "precision": 0.7931,
+    "recall": 0.8846,
+    "f1_score": 0.8364,
+    "per_category": {
+      "PERSON": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 2
+      },
+      "PHONE": {
+        "tp": 6,
+        "fp": 1,
+        "fn": 0
+      },
+      "ORG": {
+        "tp": 4,
+        "fp": 3,
+        "fn": 1
+      },
+      "EMAIL": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADDRESS": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0
+      }
+    }
+  },
+  "synthetic_evaluation": {
+    "total_cases": 22,
+    "tp": 21,
+    "tn": 66,
+    "fp": 6,
+    "fn": 1,
+    "accuracy": 0.9255,
+    "precision": 0.7778,
+    "recall": 0.9545,
+    "f1_score": 0.8571,
+    "per_category": {
+      "EMAIL": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "PHONE": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 1
+      },
+      "IP_ADDRESS": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "ORG": {
+        "tp": 2,
+        "fp": 6,
+        "fn": 0
+      },
+      "SSN": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "CREDIT_CARD": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "DOB": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "PERSON": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  },
+  "false_positives": [
+    {
+      "context": "Contact Person: Sarthak Malvadkar, Company Secretary and Compliance Officer; Tel",
+      "predicted_text": "+ 91 20 4505 3237",
+      "predicted_label": "PHONE",
+      "expected_text": "Sarthak Malvadkar",
+      "expected_label": "PERSON"
+    },
+    {
+      "context": "Rohit Kushal Hegde, Joint Managing Director",
+      "predicted_text": "Joint",
+      "predicted_label": "ORG",
+      "expected_text": "Rohit Kushal Hegde",
+      "expected_label": "PERSON"
+    },
+    {
+      "context": "Rakhi Girija Shetty, Whole-time Director",
+      "predicted_text": "Rakhi Girija Shetty",
+      "predicted_label": "ORG",
+      "expected_text": "Rakhi Girija Shetty",
+      "expected_label": "PERSON"
+    },
+    {
+      "context": "Dinesh Hirachand Munot, Independent Director",
+      "predicted_text": "Dinesh Hirachand Munot",
+      "predicted_label": "ORG",
+      "expected_text": "Dinesh Hirachand Munot",
+      "expected_label": "PERSON"
+    },
+    {
+      "context": "Contact Person: Sarthak Malvadkar, Company Secretary and Compliance Officer; Tel",
+      "predicted_text": "Sarthak Malvadkar",
+      "predicted_label": "PERSON",
+      "expected_text": "+ 91 20 4505 3237",
+      "expected_label": "PHONE"
+    },
+    {
+      "context": "Employee SSN: 123-45-6789 as per HR records.",
+      "predicted_text": "SSN",
+      "predicted_label": "ORG",
+      "expected_text": "123-45-6789",
+      "expected_label": "SSN"
+    },
+    {
+      "context": "Social Security Number: 987-65-4321",
+      "predicted_text": "Social Security Number",
+      "predicted_label": "ORG",
+      "expected_text": "987-65-4321",
+      "expected_label": "SSN"
+    },
+    {
+      "context": "Payment card on file: 4111 1111 1111 1111 (Visa)",
+      "predicted_text": "Visa",
+      "predicted_label": "ORG",
+      "expected_text": "4111 1111 1111 1111",
+      "expected_label": "CREDIT_CARD"
+    },
+    {
+      "context": "MasterCard ending in: 5500-0000-0000-0004",
+      "predicted_text": "MasterCard",
+      "predicted_label": "ORG",
+      "expected_text": "5500-0000-0000-0004",
+      "expected_label": "CREDIT_CARD"
+    },
+    {
+      "context": "DOB: 01-Jan-1980 is recorded in the system.",
+      "predicted_text": "DOB",
+      "predicted_label": "ORG",
+      "expected_text": "01-Jan-1980",
+      "expected_label": "DOB"
+    }
+  ],
+  "false_negatives": [
+    {
+      "context": "Rakhi Girija Shetty, Whole-time Director",
+      "expected_text": "Rakhi Girija Shetty",
+      "expected_label": "PERSON"
+    },
+    {
+      "context": "Dinesh Hirachand Munot, Independent Director",
+      "expected_text": "Dinesh Hirachand Munot",
+      "expected_label": "PERSON"
+    },
+    {
+      "context": "ICICI Securities Limited, ICICI Centre, H.T. Parekh Marg, Churchgate, Mumbai",
+      "expected_text": "ICICI Securities Limited",
+      "expected_label": "ORG"
+    },
+    {
+      "context": "US contact number: +1 212 555 1234",
+      "expected_text": "+1 212 555 1234",
+      "expected_label": "PHONE"
+    }
+  ]
+}
