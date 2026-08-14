@@ -259,6 +259,13 @@ class NERDetector(BaseDetector):
             text_stripped = text.strip()
             if not text_stripped or len(text_stripped) < 3 or not any(c.isupper() for c in text_stripped):
                 continue
+            clean_lower = text_stripped.lower()
+            if clean_lower in config.NON_PII_STOPWORDS:
+                continue
+            words = clean_lower.split()
+            if all(w in config.NON_PII_STOPWORDS for w in words):
+                continue
+
             if len(text_stripped) < 200 and text_stripped in self._cache:
                 results[idx] = [
                     Entity(text=e.text, label=e.label, start=e.start, end=e.end, confidence=e.confidence, source=e.source)
