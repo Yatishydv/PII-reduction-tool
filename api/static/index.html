@@ -1193,16 +1193,16 @@ curl -X POST "http://localhost:8000/redact" \
       const formData = new FormData();
       formData.append('file', file);
 
-      // Continuous dynamic ticker up to 99% so progress bar NEVER freezes
+      // Continuous dynamic ticker up to 98% so progress bar NEVER freezes
       let currentStage = 10;
       const progressTicker = setInterval(() => {
-        if (currentStage < 99) {
-          currentStage += 1;
+        if (currentStage < 98) {
+          currentStage += Math.floor(Math.random() * 3) + 1;
+          if (currentStage > 98) currentStage = 98;
           let stageMsg = 'Parsing XML paragraphs & table structures...';
-          if (currentStage > 35) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
-          if (currentStage > 65) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
-          if (currentStage > 88) stageMsg = 'Finalizing preview rendering & metrics report...';
-          if (currentStage >= 98) stageMsg = 'Almost ready...';
+          if (currentStage > 30) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
+          if (currentStage > 60) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
+          if (currentStage > 85) stageMsg = 'Finalizing 70-page preview rendering & metrics report...';
           
           updateProgress(currentStage, stageMsg);
         }

@@ -169,8 +169,8 @@ async def analyze_document(file: UploadFile = File(...)):
                     if text_parts:
                         paragraphs_raw.append("".join(text_parts))
 
-        # Process first 250 paragraphs using lightweight memory footprint (< 50MB RAM)
-        for txt in paragraphs_raw[:250]:
+        # Process all paragraphs across all pages of the document
+        for txt in paragraphs_raw:
             if not txt.strip():
                 continue
 

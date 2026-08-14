@@ -119,6 +119,10 @@ class NERDetector(BaseDetector):
         if not text_stripped:
             return []
 
+        # Fast Pre-Check: Skip spaCy NER if text has no uppercase characters (names & orgs require capital letters)
+        if not any(c.isupper() for c in text_stripped):
+            return []
+
         # Check cache for repetitive table cells & short texts
         if len(text_stripped) < 200 and text_stripped in self._cache:
             return [
