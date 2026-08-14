@@ -173,49 +173,36 @@ async def analyze_document(
         tmp_in.write(content)
         tmp_input_path = Path(tmp_in.name)
 
-    try:
-        import docx
-        from docx.text.paragraph import Paragraph
+        import zipfile
+        import xml.etree.ElementTree as ET
 
-        doc = docx.Document(str(tmp_input_path))
+        extracted_texts = []
+        with zipfile.ZipFile(tmp_input_path, 'r') as zf:
+            xml_bytes = zf.read('word/document.xml')
+            root = ET.fromstring(xml_bytes)
+            ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+            for p_elem in root.findall('.//w:p', ns):
+                t_nodes = p_elem.findall('.//w:t', ns)
+                if t_nodes:
+                    txt = "".join(node.text for node in t_nodes if node.text)
+                    if txt.strip():
+                        extracted_texts.append(txt)
 
-        body_paragraphs = [p for p in doc.paragraphs if p.text.strip()]
-        total_body_paras = len(body_paragraphs)
-        total_pages = max(1, (total_body_paras + 9) // 10)
-        total_chunks = max(1, (total_body_paras + chunk_size - 1) // chunk_size)
+        total_texts = len(extracted_texts)
+        total_pages = max(1, (total_texts + 9) // 10)
+        total_chunks = max(1, (total_texts + chunk_size - 1) // chunk_size)
 
-        # Slice body paragraphs for this chunk
         start_idx = chunk_index * chunk_size
-        end_idx = min(total_body_paras, start_idx + chunk_size)
-        target_body_paras = body_paragraphs[start_idx:end_idx]
-
-        # Extract table paragraphs
-        table_paragraphs = []
-        seen_table_paragraphs = set()
-        for table in doc.tables:
-            for p_elem in table._element.xpath('.//w:p'):
-                pid = id(p_elem)
-                if pid in seen_table_paragraphs:
-                    continue
-                seen_table_paragraphs.add(pid)
-                p = Paragraph(p_elem, table)
-                if p.text.strip():
-                    table_paragraphs.append(p)
-
-        # Slice table paragraphs proportionally for this chunk
-        total_tables = len(table_paragraphs)
-        t_start = int(chunk_index * (total_tables / total_chunks)) if total_chunks > 0 else 0
-        t_end = int((chunk_index + 1) * (total_tables / total_chunks)) if total_chunks > 0 else total_tables
-        target_table_paras = table_paragraphs[t_start:t_end]
+        end_idx = min(total_texts, start_idx + chunk_size)
+        target_texts = extracted_texts[start_idx:end_idx]
 
         all_detected_entities = []
         preview_paragraphs = []
         redacted_paragraphs = []
         replacements_dict = {}
 
-        # Scan body paragraphs in this chunk
-        for para in target_body_paras:
-            txt = para.text
+        # Scan text blocks in this chunk
+        for txt in target_texts:
             redacted, entities = _redactor.redact(txt)
             all_detected_entities.extend(entities)
 
@@ -243,24 +230,6 @@ async def analyze_document(
 
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
-
-        # Scan table paragraphs in this chunk
-        for p in target_table_paras:
-            txt = p.text
-            redacted, entities = _redactor.redact(txt)
-            all_detected_entities.extend(entities)
-
-            for ent in entities:
-                repl = _redactor.generator.get_replacement(ent.text, ent.label)
-                key = (ent.text.strip(), ent.label)
-                if key not in replacements_dict:
-                    replacements_dict[key] = {
-                        "original": ent.text.strip(),
-                        "label": ent.label,
-                        "replacement": repl,
-                        "count": 0,
-                    }
-                replacements_dict[key]["count"] += 1
 
         type_counts = Counter(e.label for e in all_detected_entities)
         total_count = len(all_detected_entities)
@@ -291,7 +260,7 @@ async def analyze_document(
                 "recall": recall,
                 "f1_score": f1,
                 "accuracy": accuracy,
-                "total_scanned_blocks": len(target_body_paras) + len(target_table_paras),
+                "total_scanned_blocks": len(target_texts),
             },
             "is_complete": (chunk_index >= total_chunks - 1),
         }
