@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 from typing import List, Tuple
 
+from .. import config
 from ..detectors.base import Entity
 from ..detectors.entity_resolver import EntityResolver
 from .replacement import ReplacementGenerator
