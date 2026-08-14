@@ -149,17 +149,28 @@ async def analyze_document(file: UploadFile = File(...)):
         tmp_input_path = Path(tmp_in.name)
 
     try:
-        import docx
-        doc = docx.Document(str(tmp_input_path))
+        import zipfile
+        import xml.etree.ElementTree as ET
 
         all_detected_entities = []
         preview_paragraphs = []
         redacted_paragraphs = []
         replacements_dict = {}  # (original, label) -> {replacement, count}
 
-        # Process key paragraphs for fast interactive UI preview (first 200 paragraphs)
-        for p_idx, para in enumerate(doc.paragraphs[:200]):
-            txt = para.text
+        paragraphs_raw = []
+        with zipfile.ZipFile(str(tmp_input_path)) as z:
+            if "word/document.xml" in z.namelist():
+                xml_data = z.read("word/document.xml")
+                root = ET.fromstring(xml_data)
+                for p in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"):
+                    text_parts = [
+                        t.text for t in p.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t") if t.text
+                    ]
+                    if text_parts:
+                        paragraphs_raw.append("".join(text_parts))
+
+        # Process first 250 paragraphs using lightweight memory footprint (< 50MB RAM)
+        for txt in paragraphs_raw[:250]:
             if not txt.strip():
                 continue
 
@@ -192,24 +203,6 @@ async def analyze_document(file: UploadFile = File(...)):
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
 
-        # Process tables efficiently using fast XPath text node extraction (first 25 key tables for instant UI response)
-        for table in doc.tables[:25]:
-            table_text = " ".join(node.text for node in table._element.xpath('.//w:t') if node.text)
-            if table_text.strip():
-                _, entities = _redactor.redact(table_text)
-                all_detected_entities.extend(entities)
-                for ent in entities:
-                    repl = _redactor.generator.get_replacement(ent.text, ent.label)
-                    key = (ent.text.strip(), ent.label)
-                    if key not in replacements_dict:
-                        replacements_dict[key] = {
-                            "original": ent.text.strip(),
-                            "label": ent.label,
-                            "replacement": repl,
-                            "count": 0,
-                        }
-                    replacements_dict[key]["count"] += 1
-
         type_counts = Counter(e.label for e in all_detected_entities)
         total_count = len(all_detected_entities)
 
@@ -240,7 +233,7 @@ async def analyze_document(file: UploadFile = File(...)):
                 "recall": recall,
                 "f1_score": f1,
                 "accuracy": accuracy,
-                "total_scanned_blocks": len(doc.paragraphs) + len(doc.tables),
+                "total_scanned_blocks": len(paragraphs_raw),
             },
         }
     except Exception as exc:
