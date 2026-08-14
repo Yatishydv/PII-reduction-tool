@@ -178,8 +178,10 @@ async def analyze_document(file: UploadFile = File(...)):
         redacted_paragraphs = []
         replacements_dict = {}  # (original, label) -> {replacement, count}
 
-        # Process key paragraphs for fast interactive UI preview (first 200 paragraphs)
-        for p_idx, para in enumerate(doc.paragraphs[:200]):
+        from docx.text.paragraph import Paragraph
+
+        # Process all body paragraphs
+        for para in doc.paragraphs:
             txt = para.text
             if not txt.strip():
                 continue
@@ -213,11 +215,19 @@ async def analyze_document(file: UploadFile = File(...)):
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
 
-        # Process tables efficiently using fast XPath text node extraction (first 25 key tables for instant UI response)
-        for table in doc.tables[:25]:
-            table_text = " ".join(node.text for node in table._element.xpath('.//w:t') if node.text)
-            if table_text.strip():
-                _, entities = _redactor.redact(table_text)
+        # Process all table paragraphs using fast direct XPath traversal
+        seen_table_paragraphs = set()
+        for table in doc.tables:
+            for p_elem in table._element.xpath('.//w:p'):
+                pid = id(p_elem)
+                if pid in seen_table_paragraphs:
+                    continue
+                seen_table_paragraphs.add(pid)
+                p = Paragraph(p_elem, table)
+                txt = p.text
+                if not txt.strip():
+                    continue
+                redacted, entities = _redactor.redact(txt)
                 all_detected_entities.extend(entities)
                 for ent in entities:
                     repl = _redactor.generator.get_replacement(ent.text, ent.label)
