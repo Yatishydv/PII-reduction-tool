@@ -180,8 +180,8 @@ async def analyze_document(file: UploadFile = File(...)):
 
         from docx.text.paragraph import Paragraph
 
-        # Process all body paragraphs
-        for para in doc.paragraphs:
+        # Process key paragraphs for fast interactive UI preview (first 250 paragraphs)
+        for para in doc.paragraphs[:250]:
             txt = para.text
             if not txt.strip():
                 continue
@@ -215,9 +215,9 @@ async def analyze_document(file: UploadFile = File(...)):
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
 
-        # Process all table paragraphs using fast direct XPath traversal
+        # Process key tables (first 30 key tables) using direct XPath
         seen_table_paragraphs = set()
-        for table in doc.tables:
+        for table in doc.tables[:30]:
             for p_elem in table._element.xpath('.//w:p'):
                 pid = id(p_elem)
                 if pid in seen_table_paragraphs:
