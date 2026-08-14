@@ -159,8 +159,12 @@ async def scan_text(text: str = Form(...)):
 
 
 @app.post("/analyze")
-async def analyze_document(file: UploadFile = File(...)):
-    """Analyze a DOCX file, detect PII, generate interactive preview HTML, complete replacement log, & dynamic metrics."""
+async def analyze_document(
+    file: UploadFile = File(...),
+    chunk_index: int = Form(0),
+    chunk_size: int = Form(100),
+):
+    """Analyze a DOCX file in fast chunks, returning PII entities, preview HTML, & metrics per chunk."""
     if not file.filename.endswith(".docx"):
         raise HTTPException(status_code=400, detail="Only .docx files are supported")
 
@@ -171,21 +175,47 @@ async def analyze_document(file: UploadFile = File(...)):
 
     try:
         import docx
+        from docx.text.paragraph import Paragraph
+
         doc = docx.Document(str(tmp_input_path))
+
+        body_paragraphs = [p for p in doc.paragraphs if p.text.strip()]
+        total_body_paras = len(body_paragraphs)
+        total_pages = max(1, (total_body_paras + 9) // 10)
+        total_chunks = max(1, (total_body_paras + chunk_size - 1) // chunk_size)
+
+        # Slice body paragraphs for this chunk
+        start_idx = chunk_index * chunk_size
+        end_idx = min(total_body_paras, start_idx + chunk_size)
+        target_body_paras = body_paragraphs[start_idx:end_idx]
+
+        # Extract table paragraphs
+        table_paragraphs = []
+        seen_table_paragraphs = set()
+        for table in doc.tables:
+            for p_elem in table._element.xpath('.//w:p'):
+                pid = id(p_elem)
+                if pid in seen_table_paragraphs:
+                    continue
+                seen_table_paragraphs.add(pid)
+                p = Paragraph(p_elem, table)
+                if p.text.strip():
+                    table_paragraphs.append(p)
+
+        # Slice table paragraphs proportionally for this chunk
+        total_tables = len(table_paragraphs)
+        t_start = int(chunk_index * (total_tables / total_chunks)) if total_chunks > 0 else 0
+        t_end = int((chunk_index + 1) * (total_tables / total_chunks)) if total_chunks > 0 else total_tables
+        target_table_paras = table_paragraphs[t_start:t_end]
 
         all_detected_entities = []
         preview_paragraphs = []
         redacted_paragraphs = []
-        replacements_dict = {}  # (original, label) -> {replacement, count}
+        replacements_dict = {}
 
-        from docx.text.paragraph import Paragraph
-
-        # Process key paragraphs for fast interactive UI preview (first 250 paragraphs)
-        for para in doc.paragraphs[:250]:
+        # Scan body paragraphs in this chunk
+        for para in target_body_paras:
             txt = para.text
-            if not txt.strip():
-                continue
-
             redacted, entities = _redactor.redact(txt)
             all_detected_entities.extend(entities)
 
@@ -201,7 +231,6 @@ async def analyze_document(file: UploadFile = File(...)):
                     }
                 replacements_dict[key]["count"] += 1
 
-            # Build highlighted text for document preview
             para_html = txt
             for ent in reversed(entities):
                 repl = _redactor.generator.get_replacement(ent.text, ent.label)
@@ -215,54 +244,45 @@ async def analyze_document(file: UploadFile = File(...)):
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
 
-        # Process key tables (first 30 key tables) using direct XPath
-        seen_table_paragraphs = set()
-        for table in doc.tables[:30]:
-            for p_elem in table._element.xpath('.//w:p'):
-                pid = id(p_elem)
-                if pid in seen_table_paragraphs:
-                    continue
-                seen_table_paragraphs.add(pid)
-                p = Paragraph(p_elem, table)
-                txt = p.text
-                if not txt.strip():
-                    continue
-                redacted, entities = _redactor.redact(txt)
-                all_detected_entities.extend(entities)
-                for ent in entities:
-                    repl = _redactor.generator.get_replacement(ent.text, ent.label)
-                    key = (ent.text.strip(), ent.label)
-                    if key not in replacements_dict:
-                        replacements_dict[key] = {
-                            "original": ent.text.strip(),
-                            "label": ent.label,
-                            "replacement": repl,
-                            "count": 0,
-                        }
-                    replacements_dict[key]["count"] += 1
+        # Scan table paragraphs in this chunk
+        for p in target_table_paras:
+            txt = p.text
+            redacted, entities = _redactor.redact(txt)
+            all_detected_entities.extend(entities)
+
+            for ent in entities:
+                repl = _redactor.generator.get_replacement(ent.text, ent.label)
+                key = (ent.text.strip(), ent.label)
+                if key not in replacements_dict:
+                    replacements_dict[key] = {
+                        "original": ent.text.strip(),
+                        "label": ent.label,
+                        "replacement": repl,
+                        "count": 0,
+                    }
+                replacements_dict[key]["count"] += 1
 
         type_counts = Counter(e.label for e in all_detected_entities)
         total_count = len(all_detected_entities)
 
-        # Calculate dynamic metrics for this specific document
         tp = total_count
-        fp = max(0, int(total_count * 0.04))  # Precision estimation
+        fp = max(0, int(total_count * 0.04))
         precision = round(tp / (tp + fp) if (tp + fp) > 0 else 1.0, 4)
         recall = round(0.9642, 4)
         f1 = round(2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 1.0, 4)
         accuracy = precision
 
-        # Format replacements array sorted by count descending
         replacements_list = sorted(list(replacements_dict.values()), key=lambda x: x["count"], reverse=True)
 
         return {
             "filename": file.filename,
             "size_bytes": len(content),
+            "chunk_index": chunk_index,
+            "total_chunks": total_chunks,
+            "total_pages": total_pages,
             "total_entities": total_count,
             "categories_count": len(type_counts),
             "type_counts": dict(type_counts),
-            "total_paragraphs": len(preview_paragraphs),
-            "pages_count": max(1, (len(preview_paragraphs) + 9) // 10),
             "preview_paragraphs": preview_paragraphs,
             "redacted_paragraphs": redacted_paragraphs,
             "replacements": replacements_list,
@@ -271,8 +291,9 @@ async def analyze_document(file: UploadFile = File(...)):
                 "recall": recall,
                 "f1_score": f1,
                 "accuracy": accuracy,
-                "total_scanned_blocks": len(doc.paragraphs) + len(doc.tables),
+                "total_scanned_blocks": len(target_body_paras) + len(target_table_paras),
             },
+            "is_complete": (chunk_index >= total_chunks - 1),
         }
     except Exception as exc:
         logger.error("Analysis failed: %s", exc, exc_info=True)
