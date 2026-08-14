@@ -162,7 +162,7 @@ async def scan_text(text: str = Form(...)):
 async def analyze_document(
     file: UploadFile = File(...),
     chunk_index: int = Form(0),
-    chunk_size: int = Form(100),
+    chunk_size: int = Form(500),
 ):
     """Analyze a DOCX file in fast chunks, returning PII entities, preview HTML, & metrics per chunk."""
     if not file.filename.endswith(".docx"):

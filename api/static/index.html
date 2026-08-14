@@ -1530,11 +1530,11 @@ curl -X POST "http://localhost:8000/redact" \
           const formData = new FormData();
           formData.append('file', file);
           formData.append('chunk_index', chunkIndex);
-          formData.append('chunk_size', 100);
+          formData.append('chunk_size', 500);
 
           const pct = Math.min(95, Math.round(((chunkIndex + 1) / totalChunks) * 90));
           const stageMsg = totalChunks > 1 
-            ? `Scanning chunk ${chunkIndex + 1} of ${totalChunks} (Pages 1–${totalPages || 70})...` 
+            ? `Scanning chunk ${chunkIndex + 1} of ${totalChunks} (Pages 1–${totalPages || 403})...` 
             : 'Scanning document structure & PII entities...';
           
           updateProgress(pct, stageMsg);
@@ -1542,8 +1542,12 @@ curl -X POST "http://localhost:8000/redact" \
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 45000);
 
-          const res = await fetch('/analyze', { method: 'POST', body: formData, signal: controller.signal });
-          clearTimeout(timeoutId);
+          let res;
+          try {
+            res = await fetch('/analyze', { method: 'POST', body: formData, signal: controller.signal });
+          } finally {
+            clearTimeout(timeoutId);
+          }
 
           if (!res.ok) throw new Error('Analysis request failed (Status ' + res.status + ')');
 
