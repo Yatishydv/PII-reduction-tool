@@ -106,6 +106,10 @@ class NERDetector(BaseDetector):
             base += 0.05
         return min(base, 1.0)
 
+    def clear_cache(self) -> None:
+        """Clear cached entity detections to release memory."""
+        self._cache.clear()
+
     def detect(self, text: str) -> List[Entity]:
         """Detect PERSON and ORG entities in *text*.
 
@@ -116,10 +120,10 @@ class NERDetector(BaseDetector):
             return []
 
         text_stripped = text.strip()
-        if not text_stripped:
+        if not text_stripped or len(text_stripped) < 3:
             return []
 
-        # Fast Pre-Check: Skip spaCy NER if text has no uppercase characters (names & orgs require capital letters)
+        # Fast pre-check: PERSON and ORG names must contain at least one uppercase letter
         if not any(c.isupper() for c in text_stripped):
             return []
 
@@ -137,9 +141,9 @@ class NERDetector(BaseDetector):
                 for e in self._cache[text_stripped]
             ]
 
-    def _process_doc(self, doc, text: str) -> List[Entity]:
-        """Extract valid PERSON and ORG entities from a spaCy Doc object."""
+        doc = self._nlp(text)
         entities: List[Entity] = []
+
         for ent in doc.ents:
             span_text = ent.text.strip()
 
@@ -190,7 +194,7 @@ class NERDetector(BaseDetector):
                     if not self._looks_like_org(span_text):
                         continue
                 label = config.ORG
-                conf = 0.85
+                conf = 0.80
                 src = "ner_org"
 
             else:
@@ -207,80 +211,9 @@ class NERDetector(BaseDetector):
                 )
             )
 
-        return entities
-
-    def detect(self, text: str) -> List[Entity]:
-        """Detect PERSON and ORG entities in *text*."""
-        if self._nlp is None:  # pragma: no cover
-            return []
-
-        text_stripped = text.strip()
-        if not text_stripped:
-            return []
-
-        # Fast Pre-Check: Skip spaCy NER if text has no uppercase characters (names & orgs require capital letters)
-        if not any(c.isupper() for c in text_stripped):
-            return []
-
-        # Check cache for repetitive table cells & short texts
-        if len(text_stripped) < 200 and text_stripped in self._cache:
-            return [
-                Entity(
-                    text=e.text,
-                    label=e.label,
-                    start=e.start,
-                    end=e.end,
-                    confidence=e.confidence,
-                    source=e.source
-                )
-                for e in self._cache[text_stripped]
-            ]
-
-        doc = self._nlp(text)
-        entities = self._process_doc(doc, text)
-
         if len(text_stripped) < 200:
-            if len(self._cache) > 200:
+            if len(self._cache) >= 100:
                 self._cache.clear()
             self._cache[text_stripped] = entities
 
         return entities
-
-    def detect_batch(self, texts: List[str]) -> List[List[Entity]]:
-        """Run high-performance batch spaCy nlp.pipe detection across multiple text strings."""
-        if self._nlp is None:
-            return [[] for _ in texts]
-
-        results: List[List[Entity]] = [[] for _ in texts]
-        to_process_indices = []
-        to_process_texts = []
-
-        for idx, text in enumerate(texts):
-            text_stripped = text.strip()
-            if not text_stripped or len(text_stripped) < 3 or not any(c.isupper() for c in text_stripped):
-                continue
-            clean_lower = text_stripped.lower()
-            if clean_lower in config.NON_PII_STOPWORDS:
-                continue
-            words = clean_lower.split()
-            if all(w in config.NON_PII_STOPWORDS for w in words):
-                continue
-
-            if len(text_stripped) < 200 and text_stripped in self._cache:
-                results[idx] = [
-                    Entity(text=e.text, label=e.label, start=e.start, end=e.end, confidence=e.confidence, source=e.source)
-                    for e in self._cache[text_stripped]
-                ]
-                continue
-            to_process_indices.append(idx)
-            to_process_texts.append(text_stripped)
-
-        if to_process_texts:
-            docs = self._nlp.pipe(to_process_texts, batch_size=128)
-            for orig_idx, doc in zip(to_process_indices, docs):
-                ents = self._process_doc(doc, texts[orig_idx])
-                results[orig_idx] = ents
-                if len(texts[orig_idx].strip()) < 200:
-                    self._cache[texts[orig_idx].strip()] = ents
-
-        return resultsentities

@@ -178,25 +178,21 @@ class DocxProcessor:
     # ------------------------------------------------------------------
 
     def _process_table(self, table: Table, redact_fn) -> int:
-        """Recursively process all cells in *table*.
+        """Process all paragraphs in *table* efficiently via direct XPath.
         
-        Deduplicates by XML element pointer (``_tc``) to handle:
+        Deduplicates by paragraph XML element pointer (``p_elem``) to handle:
         - Merged cells (same element shared across multiple row/col positions)
-        - Wide tables where separate cells contain identical content
+        - Nested tables and wide table cells
         """
         count = 0
-        seen_cells: set[int] = set()
-        for row in table.rows:
-            for cell in row.cells:
-                # Merged cells share the same _tc XML element — deduplicate by id
-                cid = id(cell._tc)
-                if cid in seen_cells:
-                    continue
-                seen_cells.add(cid)
-                count += _replace_in_cell(cell, redact_fn)
-                # Handle nested tables
-                for nested_table in cell.tables:
-                    count += self._process_table(nested_table, redact_fn)
+        seen_paragraphs: set[int] = set()
+        for p_elem in table._element.xpath('.//w:p'):
+            pid = id(p_elem)
+            if pid in seen_paragraphs:
+                continue
+            seen_paragraphs.add(pid)
+            para = Paragraph(p_elem, table)
+            count += _replace_in_paragraph(para, redact_fn)
         return count
 
     # ------------------------------------------------------------------
@@ -205,17 +201,18 @@ class DocxProcessor:
 
     @staticmethod
     def validate(output_path: str | Path) -> dict:
-        """Open and validate the output DOCX.
+        """Validate the output DOCX file without reloading full python-docx DOM.
 
         Checks:
           - File exists and has .docx extension
-          - Can be opened by python-docx
-          - Contains at least one paragraph
-          - Contains at least one table
+          - Valid zip archive structure containing word/document.xml
+          - Non-empty document XML body
 
         Returns:
             A dict with keys: valid (bool), issues (list[str])
         """
+        import zipfile
+
         out = Path(output_path)
         issues: List[str] = []
 
@@ -225,17 +222,21 @@ class DocxProcessor:
             issues.append(f"Unexpected extension: {out.suffix}")
 
         try:
-            doc = docx.Document(str(out))
+            if not zipfile.is_zipfile(out):
+                return {"valid": False, "issues": ["Output file is not a valid zip/DOCX file"]}
+
+            with zipfile.ZipFile(out, 'r') as zf:
+                if zf.testzip() is not None:
+                    return {"valid": False, "issues": ["Corrupted zip archive in DOCX output"]}
+                
+                namelist = zf.namelist()
+                if "word/document.xml" not in namelist:
+                    issues.append("Missing word/document.xml in DOCX container")
+                else:
+                    doc_info = zf.getinfo("word/document.xml")
+                    if doc_info.file_size < 100:
+                        issues.append("Document XML body appears empty or corrupted")
         except Exception as exc:
-            return {"valid": False, "issues": [f"Cannot open DOCX: {exc}"]}
-
-        if not doc.paragraphs:
-            issues.append("No paragraphs found in output")
-        if not doc.tables:
-            issues.append("No tables found in output (expected tables from source)")
-
-        paragraph_text = " ".join(p.text for p in doc.paragraphs[:10])
-        if len(paragraph_text) < 50:
-            issues.append("Paragraphs appear empty or nearly empty")
+            return {"valid": False, "issues": [f"Cannot validate DOCX archive: {exc}"]}
 
         return {"valid": len(issues) == 0, "issues": issues}

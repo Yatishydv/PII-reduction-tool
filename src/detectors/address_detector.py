@@ -90,6 +90,14 @@ def _extract_address_span(text: str, anchor_start: int, anchor_end: int) -> Tupl
     return span_start, min(span_end, len(text))
 
 
+_PLAIN_ADDRESS_KEYWORDS = [
+    "flat", "apartment", "apt", "floor", "plot", "survey", "village",
+    "taluka", "taluk", "district", "lane", "road", "nagar", "society",
+    "colony", "building", "bungalow", "pincode", "postal", "mumbai",
+    "pune", "maharashtra", "bengaluru", "bangalore", "marg", "chowk",
+    "sector", "block", "pin",
+]
+
 class AddressDetector(BaseDetector):
     """Keyword-anchor based physical address detector.
 
@@ -102,6 +110,13 @@ class AddressDetector(BaseDetector):
 
     def detect(self, text: str) -> List[Entity]:
         entities: List[Entity] = []
+        if not text or len(text) < 15:
+            return entities
+
+        text_lower = text.lower()
+        if not any(kw in text_lower for kw in _PLAIN_ADDRESS_KEYWORDS):
+            return entities
+
         hits = _find_anchor_hits(text)
 
         if len(hits) < config.ADDRESS_MIN_ANCHOR_HITS:

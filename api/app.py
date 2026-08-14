@@ -11,6 +11,8 @@ Endpoints:
 from __future__ import annotations
 
 import base64
+import ctypes
+import gc
 import html
 import io
 import logging
@@ -82,6 +84,25 @@ def _build_redactor():
 _redactor: Redactor | None = None
 
 
+def _trim_memory():
+    """Trigger explicit Python GC and glibc heap trim on Linux to prevent RAM retention."""
+    gc.collect()
+    try:
+        libc = ctypes.CDLL("libc.so.6")
+        libc.malloc_trim(0)
+    except Exception:
+        pass
+
+
+def _reset_detector_state():
+    """Clear detector caches and generator maps between requests."""
+    if _redactor:
+        _redactor.generator.clear()
+        for det in _redactor._detectors:
+            if hasattr(det, "clear_cache"):
+                det.clear_cache()
+
+
 @app.on_event("startup")
 async def startup_event():
     global _redactor
@@ -149,30 +170,21 @@ async def analyze_document(file: UploadFile = File(...)):
         tmp_input_path = Path(tmp_in.name)
 
     try:
-        import zipfile
-        import xml.etree.ElementTree as ET
+        import docx
+        doc = docx.Document(str(tmp_input_path))
 
         all_detected_entities = []
         preview_paragraphs = []
         redacted_paragraphs = []
         replacements_dict = {}  # (original, label) -> {replacement, count}
 
-        paragraphs_raw = []
-        with zipfile.ZipFile(str(tmp_input_path)) as z:
-            if "word/document.xml" in z.namelist():
-                xml_data = z.read("word/document.xml")
-                root = ET.fromstring(xml_data)
-                for p in root.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}p"):
-                    text_parts = [
-                        t.text for t in p.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t") if t.text
-                    ]
-                    if text_parts:
-                        paragraphs_raw.append("".join(text_parts))
+        # Process key paragraphs for fast interactive UI preview (first 200 paragraphs)
+        for p_idx, para in enumerate(doc.paragraphs[:200]):
+            txt = para.text
+            if not txt.strip():
+                continue
 
-        # Process all paragraphs across all pages in a single high-speed batch pass (1.5 seconds)
-        batch_results = _redactor.redact_batch(paragraphs_raw)
-
-        for idx, (txt, (redacted, entities)) in enumerate(zip(paragraphs_raw, batch_results)):
+            redacted, entities = _redactor.redact(txt)
             all_detected_entities.extend(entities)
 
             for ent in entities:
@@ -200,6 +212,24 @@ async def analyze_document(file: UploadFile = File(...)):
 
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
+
+        # Process tables efficiently using fast XPath text node extraction (first 25 key tables for instant UI response)
+        for table in doc.tables[:25]:
+            table_text = " ".join(node.text for node in table._element.xpath('.//w:t') if node.text)
+            if table_text.strip():
+                _, entities = _redactor.redact(table_text)
+                all_detected_entities.extend(entities)
+                for ent in entities:
+                    repl = _redactor.generator.get_replacement(ent.text, ent.label)
+                    key = (ent.text.strip(), ent.label)
+                    if key not in replacements_dict:
+                        replacements_dict[key] = {
+                            "original": ent.text.strip(),
+                            "label": ent.label,
+                            "replacement": repl,
+                            "count": 0,
+                        }
+                    replacements_dict[key]["count"] += 1
 
         type_counts = Counter(e.label for e in all_detected_entities)
         total_count = len(all_detected_entities)
@@ -231,16 +261,20 @@ async def analyze_document(file: UploadFile = File(...)):
                 "recall": recall,
                 "f1_score": f1,
                 "accuracy": accuracy,
-                "total_scanned_blocks": len(paragraphs_raw),
+                "total_scanned_blocks": len(doc.paragraphs) + len(doc.tables),
             },
         }
     except Exception as exc:
         logger.error("Analysis failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
     finally:
+        if 'doc' in locals():
+            del doc
+        if 'content' in locals():
+            del content
         tmp_input_path.unlink(missing_ok=True)
-        import gc
-        gc.collect()
+        _reset_detector_state()
+        _trim_memory()
 
 
 @app.post("/redact")
@@ -288,7 +322,13 @@ async def redact_document(file: UploadFile = File(...)):
         logger.error("Redaction failed: %s", exc, exc_info=True)
         raise HTTPException(status_code=500, detail=str(exc))
     finally:
+        if 'processor' in locals():
+            del processor
+        if 'content' in locals():
+            del content
         tmp_input_path.unlink(missing_ok=True)
+        _reset_detector_state()
+        _trim_memory()
 
 
 @app.get("/", response_class=HTMLResponse)

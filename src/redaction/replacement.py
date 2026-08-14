@@ -125,6 +125,12 @@ class ReplacementGenerator:
             self._map[key] = self._generate(original.strip(), label)
         return self._map[key]
 
+    def clear(self) -> None:
+        """Reset internal replacement mapping and counters to free memory."""
+        self._map.clear()
+        self._email_counter = 1
+        self._phone_counter = 1
+
     def get_full_map(self) -> Dict[tuple, str]:
         """Return a copy of the internal mapping (for logging/debugging)."""
         return dict(self._map)

@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PII Shield — Privacy Intelligence Tool</title>
-  <meta name="description" content="Production PII Redaction Engine — Detect & redact sensitive personal data instantly." />
-  
+  <meta name="description"
+    content="Production PII Redaction Engine — Detect & redact sensitive personal data instantly." />
+
   <!-- Inter & JetBrains Mono Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
@@ -20,25 +24,45 @@
       --text-main: #0f172a;
       --text-muted: #64748b;
       --text-subtle: #94a3b8;
-      
+
       --accent-orange: #f97316;
       --accent-orange-hover: #ea580c;
       --accent-orange-bg: #fff7ed;
-      
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-      
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+
       /* PII Category Highlight Colors */
-      --tag-person: #dcfce7; --tag-person-text: #166534; --tag-person-border: #86efac;
-      --tag-email: #dbeafe; --tag-email-text: #1e40af; --tag-email-border: #93c5fd;
-      --tag-phone: #fef9c3; --tag-phone-text: #854d0e; --tag-phone-border: #fde047;
-      --tag-address: #f3e8ff; --tag-address-text: #6b21a8; --tag-address-border: #d8b4fe;
-      --tag-aadhaar: #fee2e2; --tag-aadhaar-text: #991b1b; --tag-aadhaar-border: #fca5a5;
-      --tag-pan: #fce7f3; --tag-pan-text: #9d174d; --tag-pan-border: #fbcfe8;
-      --tag-dob: #ffedd5; --tag-dob-text: #9a3412; --tag-dob-border: #fdba74;
-      --tag-bank: #e0e7ff; --tag-bank-text: #3730a3; --tag-bank-border: #a5b4fc;
-      --tag-ifsc: #ccfbf1; --tag-ifsc-text: #115e59; --tag-ifsc-border: #5eead4;
-      --tag-other: #f1f5f9; --tag-other-text: #334155; --tag-other-border: #cbd5e1;
+      --tag-person: #dcfce7;
+      --tag-person-text: #166534;
+      --tag-person-border: #86efac;
+      --tag-email: #dbeafe;
+      --tag-email-text: #1e40af;
+      --tag-email-border: #93c5fd;
+      --tag-phone: #fef9c3;
+      --tag-phone-text: #854d0e;
+      --tag-phone-border: #fde047;
+      --tag-address: #f3e8ff;
+      --tag-address-text: #6b21a8;
+      --tag-address-border: #d8b4fe;
+      --tag-aadhaar: #fee2e2;
+      --tag-aadhaar-text: #991b1b;
+      --tag-aadhaar-border: #fca5a5;
+      --tag-pan: #fce7f3;
+      --tag-pan-text: #9d174d;
+      --tag-pan-border: #fbcfe8;
+      --tag-dob: #ffedd5;
+      --tag-dob-text: #9a3412;
+      --tag-dob-border: #fdba74;
+      --tag-bank: #e0e7ff;
+      --tag-bank-text: #3730a3;
+      --tag-bank-border: #a5b4fc;
+      --tag-ifsc: #ccfbf1;
+      --tag-ifsc-text: #115e59;
+      --tag-ifsc-border: #5eead4;
+      --tag-other: #f1f5f9;
+      --tag-other-text: #334155;
+      --tag-other-border: #cbd5e1;
     }
 
     [data-theme="dark"] {
@@ -49,27 +73,51 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-subtle: #64748b;
-      
+
       --accent-orange-bg: rgba(249, 115, 22, 0.15);
-      
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
-      
+
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+
       /* Dark mode PII highlights */
-      --tag-person: rgba(22, 101, 52, 0.4); --tag-person-text: #86efac; --tag-person-border: rgba(34, 197, 94, 0.4);
-      --tag-email: rgba(30, 64, 175, 0.4); --tag-email-text: #93c5fd; --tag-email-border: rgba(59, 130, 246, 0.4);
-      --tag-phone: rgba(133, 77, 14, 0.4); --tag-phone-text: #fde047; --tag-phone-border: rgba(234, 179, 8, 0.4);
-      --tag-address: rgba(107, 33, 168, 0.4); --tag-address-text: #d8b4fe; --tag-address-border: rgba(168, 85, 247, 0.4);
-      --tag-aadhaar: rgba(153, 27, 27, 0.4); --tag-aadhaar-text: #fca5a5; --tag-aadhaar-border: rgba(239, 68, 68, 0.4);
-      --tag-pan: rgba(157, 23, 77, 0.4); --tag-pan-text: #fbcfe8; --tag-pan-border: rgba(236, 72, 153, 0.4);
-      --tag-dob: rgba(154, 52, 18, 0.4); --tag-dob-text: #fdba74; --tag-dob-border: rgba(249, 115, 22, 0.4);
-      --tag-bank: rgba(55, 48, 163, 0.4); --tag-bank-text: #a5b4fc; --tag-bank-border: rgba(99, 102, 241, 0.4);
-      --tag-ifsc: rgba(17, 94, 89, 0.4); --tag-ifsc-text: #5eead4; --tag-ifsc-border: rgba(20, 184, 166, 0.4);
-      --tag-other: rgba(51, 65, 85, 0.4); --tag-other-text: #cbd5e1; --tag-other-border: rgba(100, 116, 139, 0.4);
+      --tag-person: rgba(22, 101, 52, 0.4);
+      --tag-person-text: #86efac;
+      --tag-person-border: rgba(34, 197, 94, 0.4);
+      --tag-email: rgba(30, 64, 175, 0.4);
+      --tag-email-text: #93c5fd;
+      --tag-email-border: rgba(59, 130, 246, 0.4);
+      --tag-phone: rgba(133, 77, 14, 0.4);
+      --tag-phone-text: #fde047;
+      --tag-phone-border: rgba(234, 179, 8, 0.4);
+      --tag-address: rgba(107, 33, 168, 0.4);
+      --tag-address-text: #d8b4fe;
+      --tag-address-border: rgba(168, 85, 247, 0.4);
+      --tag-aadhaar: rgba(153, 27, 27, 0.4);
+      --tag-aadhaar-text: #fca5a5;
+      --tag-aadhaar-border: rgba(239, 68, 68, 0.4);
+      --tag-pan: rgba(157, 23, 77, 0.4);
+      --tag-pan-text: #fbcfe8;
+      --tag-pan-border: rgba(236, 72, 153, 0.4);
+      --tag-dob: rgba(154, 52, 18, 0.4);
+      --tag-dob-text: #fdba74;
+      --tag-dob-border: rgba(249, 115, 22, 0.4);
+      --tag-bank: rgba(55, 48, 163, 0.4);
+      --tag-bank-text: #a5b4fc;
+      --tag-bank-border: rgba(99, 102, 241, 0.4);
+      --tag-ifsc: rgba(17, 94, 89, 0.4);
+      --tag-ifsc-text: #5eead4;
+      --tag-ifsc-border: rgba(20, 184, 166, 0.4);
+      --tag-other: rgba(51, 65, 85, 0.4);
+      --tag-other-text: #cbd5e1;
+      --tag-other-border: rgba(100, 116, 139, 0.4);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Inter', -apple-system, sans-serif;
       background: var(--bg-app);
@@ -181,8 +229,18 @@
       font-size: 1.1rem;
     }
 
-    .sidebar-footer h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
-    .sidebar-footer p { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3; }
+    .sidebar-footer h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .sidebar-footer p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+      line-height: 1.3;
+    }
 
     /* MAIN CONTAINER */
     .main-wrapper {
@@ -219,7 +277,9 @@
       transition: all 0.2s ease;
     }
 
-    .theme-toggle-btn:hover { background: var(--border-color); }
+    .theme-toggle-btn:hover {
+      background: var(--border-color);
+    }
 
     .icon-btn {
       background: transparent;
@@ -252,8 +312,17 @@
       font-size: 0.85rem;
     }
 
-    .user-info h5 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); line-height: 1.1; }
-    .user-info span { font-size: 0.72rem; color: var(--text-muted); }
+    .user-info h5 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .user-info span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
 
     .content-viewport {
       flex: 1;
@@ -275,9 +344,21 @@
       box-shadow: var(--shadow-sm);
     }
 
-    .workspace-header { margin-bottom: 1.25rem; }
-    .workspace-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); }
-    .workspace-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .workspace-header {
+      margin-bottom: 1.25rem;
+    }
+
+    .workspace-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .workspace-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
 
     .file-banner {
       background: var(--bg-app);
@@ -290,10 +371,26 @@
       margin-bottom: 1.25rem;
     }
 
-    .file-banner-info { display: flex; align-items: center; gap: 0.85rem; }
-    .file-icon { font-size: 1.8rem; }
-    .file-name-text { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
-    .file-size-text { font-size: 0.75rem; color: var(--text-muted); }
+    .file-banner-info {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .file-icon {
+      font-size: 1.8rem;
+    }
+
+    .file-name-text {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .file-size-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
 
     .btn-action-group {
       display: flex;
@@ -316,10 +413,13 @@
       transition: all 0.2s ease;
     }
 
-    .btn-choose-file:hover { background: var(--border-color); }
+    .btn-choose-file:hover {
+      background: var(--border-color);
+    }
 
     .btn-clear-file {
-      display: none; /* Hidden until file is chosen */
+      display: none;
+      /* Hidden until file is chosen */
       background: var(--bg-card);
       border: 1px solid #ef4444;
       color: #ef4444;
@@ -333,10 +433,13 @@
       transition: all 0.2s ease;
     }
 
-    .btn-clear-file:hover { background: rgba(239, 68, 68, 0.1); }
+    .btn-clear-file:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
 
     .btn-start-analyze {
-      display: none; /* Hidden by default until file is uploaded */
+      display: none;
+      /* Hidden by default until file is uploaded */
       background: var(--accent-orange);
       color: white;
       border: none;
@@ -351,7 +454,9 @@
       transition: all 0.2s ease;
     }
 
-    .btn-start-analyze:hover { background: var(--accent-orange-hover); }
+    .btn-start-analyze:hover {
+      background: var(--accent-orange-hover);
+    }
 
     /* Animated 0-100 Progress Loader */
     .progress-container {
@@ -372,8 +477,15 @@
       margin-bottom: 0.5rem;
     }
 
-    .progress-status-text { color: var(--text-main); }
-    .progress-percent-text { color: var(--accent-orange); font-family: 'JetBrains Mono', monospace; font-size: 1rem; }
+    .progress-status-text {
+      color: var(--text-main);
+    }
+
+    .progress-percent-text {
+      color: var(--accent-orange);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+    }
 
     .progress-bar-track {
       width: 100%;
@@ -410,8 +522,13 @@
       color: var(--text-muted);
     }
 
-    .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
-    
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
     .toolbar-btn {
       background: transparent;
       border: 1px solid transparent;
@@ -423,8 +540,15 @@
       transition: all 0.2s ease;
     }
 
-    .toolbar-btn:hover { color: var(--text-main); background: var(--border-color); }
-    .toolbar-btn.active-tool { background: var(--accent-orange); color: white !important; }
+    .toolbar-btn:hover {
+      color: var(--text-main);
+      background: var(--border-color);
+    }
+
+    .toolbar-btn.active-tool {
+      background: var(--accent-orange);
+      color: white !important;
+    }
 
     .toolbar-toggle-pill {
       background: var(--accent-orange-bg);
@@ -457,7 +581,7 @@
       z-index: 9999;
       border-radius: 0 !important;
       background: var(--bg-card);
-      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
       display: flex;
       flex-direction: column;
     }
@@ -482,7 +606,9 @@
       user-select: text;
     }
 
-    .doc-paragraph { margin-bottom: 1rem; }
+    .doc-paragraph {
+      margin-bottom: 1rem;
+    }
 
     mark.pii-mark {
       padding: 0.15rem 0.45rem;
@@ -495,16 +621,65 @@
       cursor: pointer;
     }
 
-    mark.pii-person { background: var(--tag-person); color: var(--tag-person-text); border-color: var(--tag-person-border); }
-    mark.pii-email { background: var(--tag-email); color: var(--tag-email-text); border-color: var(--tag-email-border); }
-    mark.pii-phone { background: var(--tag-phone); color: var(--tag-phone-text); border-color: var(--tag-phone-border); }
-    mark.pii-address { background: var(--tag-address); color: var(--tag-address-text); border-color: var(--tag-address-border); }
-    mark.pii-aadhaar { background: var(--tag-aadhaar); color: var(--tag-aadhaar-text); border-color: var(--tag-aadhaar-border); }
-    mark.pii-pan { background: var(--tag-pan); color: var(--tag-pan-text); border-color: var(--tag-pan-border); }
-    mark.pii-dob { background: var(--tag-dob); color: var(--tag-dob-text); border-color: var(--tag-dob-border); }
-    mark.pii-bank_account { background: var(--tag-bank); color: var(--tag-bank-text); border-color: var(--tag-bank-border); }
-    mark.pii-ifsc_code { background: var(--tag-ifsc); color: var(--tag-ifsc-text); border-color: var(--tag-ifsc-border); }
-    mark.pii-org { background: var(--tag-other); color: var(--tag-other-text); border-color: var(--tag-other-border); }
+    mark.pii-person {
+      background: var(--tag-person);
+      color: var(--tag-person-text);
+      border-color: var(--tag-person-border);
+    }
+
+    mark.pii-email {
+      background: var(--tag-email);
+      color: var(--tag-email-text);
+      border-color: var(--tag-email-border);
+    }
+
+    mark.pii-phone {
+      background: var(--tag-phone);
+      color: var(--tag-phone-text);
+      border-color: var(--tag-phone-border);
+    }
+
+    mark.pii-address {
+      background: var(--tag-address);
+      color: var(--tag-address-text);
+      border-color: var(--tag-address-border);
+    }
+
+    mark.pii-aadhaar {
+      background: var(--tag-aadhaar);
+      color: var(--tag-aadhaar-text);
+      border-color: var(--tag-aadhaar-border);
+    }
+
+    mark.pii-pan {
+      background: var(--tag-pan);
+      color: var(--tag-pan-text);
+      border-color: var(--tag-pan-border);
+    }
+
+    mark.pii-dob {
+      background: var(--tag-dob);
+      color: var(--tag-dob-text);
+      border-color: var(--tag-dob-border);
+    }
+
+    mark.pii-bank_account {
+      background: var(--tag-bank);
+      color: var(--tag-bank-text);
+      border-color: var(--tag-bank-border);
+    }
+
+    mark.pii-ifsc_code {
+      background: var(--tag-ifsc);
+      color: var(--tag-ifsc-text);
+      border-color: var(--tag-ifsc-border);
+    }
+
+    mark.pii-org {
+      background: var(--tag-other);
+      color: var(--tag-other-text);
+      border-color: var(--tag-other-border);
+    }
 
     .action-row {
       display: grid;
@@ -529,7 +704,9 @@
       transition: all 0.2s ease;
     }
 
-    .btn-outline:hover { background: var(--border-color); }
+    .btn-outline:hover {
+      background: var(--border-color);
+    }
 
     .btn-solid-orange {
       background: var(--accent-orange);
@@ -568,7 +745,12 @@
       margin-bottom: 1.5rem;
     }
 
-    .results-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+    .results-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
     .status-badge-completed {
       background: rgba(34, 197, 94, 0.15);
       color: #22c55e;
@@ -608,8 +790,20 @@
       justify-content: center;
     }
 
-    .donut-number { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1; }
-    .donut-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-top: 0.15rem; }
+    .donut-number {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .donut-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 0.15rem;
+    }
 
     .category-list {
       display: flex;
@@ -627,25 +821,77 @@
       border-radius: 6px;
     }
 
-    .category-row:hover { background: var(--bg-app); }
-    .category-left { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-main); }
-    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .category-row:hover {
+      background: var(--bg-app);
+    }
 
-    .dot-person { background: #22c55e; }
-    .dot-email { background: #3b82f6; }
-    .dot-phone { background: #eab308; }
-    .dot-address { background: #a855f7; }
-    .dot-aadhaar { background: #ef4444; }
-    .dot-pan { background: #ec4899; }
-    .dot-dob { background: #f97316; }
-    .dot-bank { background: #6366f1; }
-    .dot-ifsc { background: #14b8a6; }
-    .dot-other { background: #64748b; }
+    .category-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
 
-    .category-count { font-weight: 700; color: var(--text-main); font-family: 'JetBrains Mono', monospace; }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
 
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
+    .dot-person {
+      background: #22c55e;
+    }
+
+    .dot-email {
+      background: #3b82f6;
+    }
+
+    .dot-phone {
+      background: #eab308;
+    }
+
+    .dot-address {
+      background: #a855f7;
+    }
+
+    .dot-aadhaar {
+      background: #ef4444;
+    }
+
+    .dot-pan {
+      background: #ec4899;
+    }
+
+    .dot-dob {
+      background: #f97316;
+    }
+
+    .dot-bank {
+      background: #6366f1;
+    }
+
+    .dot-ifsc {
+      background: #14b8a6;
+    }
+
+    .dot-other {
+      background: #64748b;
+    }
+
+    .category-count {
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
 
     .text-area-scan {
       width: 100%;
@@ -706,7 +952,12 @@
       margin-bottom: 1rem;
     }
 
-    .log-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+    .log-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
     .log-filter {
       background: var(--bg-app);
       border: 1px solid var(--border-color);
@@ -748,7 +999,10 @@
       font-family: 'JetBrains Mono', monospace;
     }
 
-    .log-table tr:hover { background: var(--bg-app); }
+    .log-table tr:hover {
+      background: var(--bg-app);
+    }
+
     .label-badge {
       display: inline-block;
       padding: 0.2rem 0.5rem;
@@ -759,6 +1013,7 @@
     }
   </style>
 </head>
+
 <body data-theme="light">
 
   <!-- SIDEBAR NAVIGATION -->
@@ -795,13 +1050,13 @@
 
   <!-- MAIN WRAPPER -->
   <div class="main-wrapper">
-    
+
     <!-- TOP BAR -->
     <header class="topbar">
       <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Mode">
         🌙
       </button>
-      
+
       <button class="icon-btn" title="Notifications">🔔</button>
 
       <div class="user-profile">
@@ -815,10 +1070,11 @@
 
     <!-- CONTENT VIEWPORT -->
     <div class="content-viewport">
-      
+
       <!-- TAB 1: SCAN DOCUMENT -->
-      <div id="pane-scan-doc" class="tab-pane active" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 340px; gap: 1.75rem;">
-        
+      <div id="pane-scan-doc" class="tab-pane active"
+        style="grid-column: span 2; display: grid; grid-template-columns: 1fr 340px; gap: 1.75rem;">
+
         <!-- Center Workspace -->
         <div class="workspace-card">
           <div class="workspace-header">
@@ -835,7 +1091,7 @@
                 <div class="file-size-text" id="fileSizeText">Supported format: Microsoft Word (.docx)</div>
               </div>
             </div>
-            
+
             <div class="btn-action-group">
               <button class="btn-choose-file" id="btnChooseFile" onclick="triggerFileInput()">
                 <span>📁</span> Choose File
@@ -866,20 +1122,23 @@
             <div class="doc-preview-toolbar">
               <div class="toolbar-left">
                 <button class="toolbar-btn" onclick="prevPage()" title="Previous Page">◀</button>
-                <span id="pageCounter" style="font-weight:700; font-family:'JetBrains Mono',monospace;">Page 1 / 1</span>
+                <span id="pageCounter" style="font-weight:700; font-family:'JetBrains Mono',monospace;">Page 1 /
+                  1</span>
                 <button class="toolbar-btn" onclick="nextPage()" title="Next Page">▶</button>
-                
+
                 <!-- Toggle Button Moved Directly INSIDE the Document Viewer Box Toolbar! -->
                 <button class="toolbar-toggle-pill" id="btnTogglePreview" onclick="toggleRedactedPreview()">
                   👁️ View Redacted Preview
                 </button>
               </div>
-              
+
               <div class="toolbar-right">
                 <button class="toolbar-btn" onclick="zoomOut()" title="Zoom Out (−)">−</button>
-                <button class="toolbar-btn" onclick="resetZoom()" id="zoomPercentText" title="Reset Zoom (100%)" style="font-family:'JetBrains Mono',monospace; font-weight:700;">100%</button>
+                <button class="toolbar-btn" onclick="resetZoom()" id="zoomPercentText" title="Reset Zoom (100%)"
+                  style="font-family:'JetBrains Mono',monospace; font-weight:700;">100%</button>
                 <button class="toolbar-btn" onclick="zoomIn()" title="Zoom In (+)">+</button>
-                <button class="toolbar-btn" id="btnPanTool" onclick="togglePanTool()" title="Toggle Hand / Pan Drag Tool">✋</button>
+                <button class="toolbar-btn" id="btnPanTool" onclick="togglePanTool()"
+                  title="Toggle Hand / Pan Drag Tool">✋</button>
                 <button class="toolbar-btn" onclick="quickDownload()" title="Quick Download Redacted DOCX">📥</button>
                 <button class="toolbar-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen Box View">⛶</button>
               </div>
@@ -968,7 +1227,8 @@
         <div class="results-card">
           <div class="results-header">
             <h3 class="results-title">Scan Results</h3>
-            <span class="status-badge-completed" id="statusBadge" style="background: rgba(148,163,184,0.15); color: var(--text-muted);">Ready</span>
+            <span class="status-badge-completed" id="statusBadge"
+              style="background: rgba(148,163,184,0.15); color: var(--text-muted);">Ready</span>
           </div>
 
           <!-- Donut Progress Badge -->
@@ -986,16 +1246,46 @@
 
           <!-- Category Breakdown List -->
           <div class="category-list" id="categoryList">
-            <div class="category-row"><div class="category-left"><span class="dot dot-person"></span> PERSON</div><div class="category-count" id="count-person">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-email"></span> EMAIL</div><div class="category-count" id="count-email">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-phone"></span> PHONE</div><div class="category-count" id="count-phone">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-address"></span> ADDRESS</div><div class="category-count" id="count-address">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-aadhaar"></span> AADHAAR</div><div class="category-count" id="count-aadhaar">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-pan"></span> PAN</div><div class="category-count" id="count-pan">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-dob"></span> DATE_OF_BIRTH</div><div class="category-count" id="count-dob">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-bank"></span> BANK_ACCOUNT</div><div class="category-count" id="count-bank">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-ifsc"></span> IFSC_CODE</div><div class="category-count" id="count-ifsc">0</div></div>
-            <div class="category-row"><div class="category-left"><span class="dot dot-other"></span> OTHER (ORG)</div><div class="category-count" id="count-other">0</div></div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-person"></span> PERSON</div>
+              <div class="category-count" id="count-person">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-email"></span> EMAIL</div>
+              <div class="category-count" id="count-email">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-phone"></span> PHONE</div>
+              <div class="category-count" id="count-phone">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-address"></span> ADDRESS</div>
+              <div class="category-count" id="count-address">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-aadhaar"></span> AADHAAR</div>
+              <div class="category-count" id="count-aadhaar">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-pan"></span> PAN</div>
+              <div class="category-count" id="count-pan">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-dob"></span> DATE_OF_BIRTH</div>
+              <div class="category-count" id="count-dob">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-bank"></span> BANK_ACCOUNT</div>
+              <div class="category-count" id="count-bank">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-ifsc"></span> IFSC_CODE</div>
+              <div class="category-count" id="count-ifsc">0</div>
+            </div>
+            <div class="category-row">
+              <div class="category-left"><span class="dot dot-other"></span> OTHER (ORG)</div>
+              <div class="category-count" id="count-other">0</div>
+            </div>
           </div>
         </div>
 
@@ -1009,8 +1299,9 @@
             <p class="workspace-subtitle">Paste any text block below to detect and highlight PII entities live.</p>
           </div>
 
-          <textarea class="text-area-scan" id="scanInputText" placeholder="Enter text containing names, emails, phones, PAN, Aadhaar, DOB, bank accounts..."></textarea>
-          
+          <textarea class="text-area-scan" id="scanInputText"
+            placeholder="Enter text containing names, emails, phones, PAN, Aadhaar, DOB, bank accounts..."></textarea>
+
           <button class="btn-solid-orange" style="width: 200px;" onclick="processTextScan()">
             🛡️ Scan Text Now
           </button>
@@ -1027,13 +1318,15 @@
         <div class="workspace-card">
           <div class="workspace-header">
             <h2 class="workspace-title">Model Evaluation Benchmark Report</h2>
-            <p class="workspace-subtitle">Empirical performance metrics computed on Gold Annotations and Synthetic test datasets.</p>
+            <p class="workspace-subtitle">Empirical performance metrics computed on Gold Annotations and Synthetic test
+              datasets.</p>
           </div>
 
           <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
               <thead>
-                <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted); font-size: 0.85rem;">
+                <tr
+                  style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted); font-size: 0.85rem;">
                   <th style="padding: 0.75rem;">PII TYPE</th>
                   <th style="padding: 0.75rem;">TP</th>
                   <th style="padding: 0.75rem;">FP</th>
@@ -1045,19 +1338,49 @@
               </thead>
               <tbody style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 0.75rem;"><strong>EMAIL</strong></td><td>8</td><td>0</td><td>0</td><td>1.0000</td><td>1.0000</td><td>1.0000</td>
+                  <td style="padding: 0.75rem;"><strong>EMAIL</strong></td>
+                  <td>8</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>1.0000</td>
+                  <td>1.0000</td>
+                  <td>1.0000</td>
                 </tr>
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 0.75rem;"><strong>PHONE</strong></td><td>6</td><td>1</td><td>0</td><td>0.8571</td><td>1.0000</td><td>0.9231</td>
+                  <td style="padding: 0.75rem;"><strong>PHONE</strong></td>
+                  <td>6</td>
+                  <td>1</td>
+                  <td>0</td>
+                  <td>0.8571</td>
+                  <td>1.0000</td>
+                  <td>0.9231</td>
                 </tr>
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 0.75rem;"><strong>PERSON</strong></td><td>5</td><td>2</td><td>2</td><td>0.7143</td><td>0.7143</td><td>0.7143</td>
+                  <td style="padding: 0.75rem;"><strong>PERSON</strong></td>
+                  <td>5</td>
+                  <td>2</td>
+                  <td>2</td>
+                  <td>0.7143</td>
+                  <td>0.7143</td>
+                  <td>0.7143</td>
                 </tr>
                 <tr style="border-bottom: 1px solid var(--border-color);">
-                  <td style="padding: 0.75rem;"><strong>ORG</strong></td><td>4</td><td>3</td><td>1</td><td>0.5714</td><td>0.8000</td><td>0.6667</td>
+                  <td style="padding: 0.75rem;"><strong>ORG</strong></td>
+                  <td>4</td>
+                  <td>3</td>
+                  <td>1</td>
+                  <td>0.5714</td>
+                  <td>0.8000</td>
+                  <td>0.6667</td>
                 </tr>
                 <tr style="background: var(--accent-orange-bg); font-weight: 700;">
-                  <td style="padding: 0.75rem;">OVERALL METRIC</td><td>23</td><td>6</td><td>3</td><td>0.7931</td><td>0.8846</td><td>0.8364</td>
+                  <td style="padding: 0.75rem;">OVERALL METRIC</td>
+                  <td>23</td>
+                  <td>6</td>
+                  <td>3</td>
+                  <td>0.7931</td>
+                  <td>0.8846</td>
+                  <td>0.8364</td>
                 </tr>
               </tbody>
             </table>
@@ -1072,7 +1395,8 @@
             <h2 class="workspace-title">API Integration</h2>
             <p class="workspace-subtitle">REST endpoints for document redaction and analysis.</p>
           </div>
-          <pre style="background: var(--bg-app); padding: 1rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto;">
+          <pre
+            style="background: var(--bg-app); padding: 1rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto;">
 curl -X POST "http://localhost:8000/redact" \
   -F "file=@document.docx" \
   --output "redacted_output.docx"
@@ -1126,17 +1450,17 @@ curl -X POST "http://localhost:8000/redact" \
       const btnChoose = document.getElementById('btnChooseFile');
       const btnClear = document.getElementById('btnClearFile');
       const btnAnalyze = document.getElementById('btnStartAnalyze');
-      
+
       if (docFileInput.files[0]) {
         const file = docFileInput.files[0];
         document.getElementById('fileNameText').textContent = file.name;
         document.getElementById('fileSizeText').textContent = (file.size / 1024).toFixed(1) + ' KB · File selected';
-        
+
         btnChoose.style.display = 'none';
         btnClear.style.display = 'inline-flex';
         btnAnalyze.style.display = 'inline-flex';
         btnAnalyze.disabled = false;
-        
+
         document.getElementById('docContentBody').innerHTML = `
           <div style="text-align: center; color: var(--text-muted); padding: 4rem;">
             📄 File loaded: <strong>${escapeHtml(file.name)}</strong>.<br />
@@ -1152,11 +1476,11 @@ curl -X POST "http://localhost:8000/redact" \
       docFileInput.value = '';
       document.getElementById('fileNameText').textContent = 'Select a .docx document to analyze';
       document.getElementById('fileSizeText').textContent = 'Supported format: Microsoft Word (.docx)';
-      
+
       document.getElementById('btnChooseFile').style.display = 'inline-flex';
       document.getElementById('btnClearFile').style.display = 'none';
       document.getElementById('btnStartAnalyze').style.display = 'none';
-      
+
       document.getElementById('docContentBody').innerHTML = `
         <div style="text-align: center; color: var(--text-muted); padding: 4rem;">
           📄 Please click <strong>"Choose File"</strong> to upload a .docx document.
@@ -1168,7 +1492,7 @@ curl -X POST "http://localhost:8000/redact" \
     async function startAnalysisWorkflow() {
       if (!docFileInput.files[0]) return;
       const file = docFileInput.files[0];
-      
+
       const btnAnalyze = document.getElementById('btnStartAnalyze');
       btnAnalyze.disabled = true;
 
@@ -1176,7 +1500,7 @@ curl -X POST "http://localhost:8000/redact" \
       const progressFill = document.getElementById('progressBarFill');
       const progressPercentText = document.getElementById('progressPercentText');
       const progressStatusText = document.getElementById('progressStatusText');
-      
+
       progressContainer.style.display = 'block';
       document.getElementById('statusBadge').textContent = 'Analyzing...';
       document.getElementById('statusBadge').style.background = 'rgba(249,115,22,0.15)';
@@ -1189,21 +1513,21 @@ curl -X POST "http://localhost:8000/redact" \
       };
 
       updateProgress(10, 'Uploading document stream to PII Shield backend...');
-      
+
       const formData = new FormData();
       formData.append('file', file);
 
-      // Continuous dynamic ticker up to 98% so progress bar NEVER freezes
+      // Continuous dynamic ticker up to 99% so progress bar NEVER freezes
       let currentStage = 10;
       const progressTicker = setInterval(() => {
-        if (currentStage < 98) {
-          currentStage += Math.floor(Math.random() * 3) + 1;
-          if (currentStage > 98) currentStage = 98;
+        if (currentStage < 99) {
+          currentStage += 1;
           let stageMsg = 'Parsing XML paragraphs & table structures...';
-          if (currentStage > 30) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
-          if (currentStage > 60) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
-          if (currentStage > 85) stageMsg = 'Finalizing document preview rendering & metrics report...';
-          
+          if (currentStage > 35) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
+          if (currentStage > 65) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
+          if (currentStage > 88) stageMsg = 'Finalizing preview rendering & metrics report...';
+          if (currentStage >= 98) stageMsg = 'Almost ready...';
+
           updateProgress(currentStage, stageMsg);
         }
       }, 100);
@@ -1223,13 +1547,13 @@ curl -X POST "http://localhost:8000/redact" \
 
         updateProgress(100, 'Analysis complete!');
         await new Promise(r => setTimeout(r, 150));
-        
+
         progressContainer.style.display = 'none';
         document.getElementById('statusBadge').textContent = 'Completed';
         document.getElementById('statusBadge').style.background = 'rgba(34,197,94,0.15)';
         document.getElementById('statusBadge').style.color = '#22c55e';
         document.getElementById('fileSizeText').textContent = (file.size / 1024).toFixed(1) + ' KB · Analyzed';
-        
+
         document.getElementById('donutNumber').textContent = data.total_entities.toLocaleString();
 
         allPreviewParagraphs = data.preview_paragraphs || [];
@@ -1463,8 +1787,9 @@ curl -X POST "http://localhost:8000/redact" \
 
     // Silent background pre-warmup ping to prevent Render free tier cold starts
     window.addEventListener('DOMContentLoaded', () => {
-      fetch('/health').catch(() => {});
+      fetch('/health').catch(() => { });
     });
   </script>
 </body>
+
 </html>

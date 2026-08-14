@@ -109,57 +109,6 @@ class Redactor:
 
         return result, entities
 
-    def redact_batch(self, texts: List[str]) -> List[Tuple[str, List[Entity]]]:
-        """High-performance batch detection and replacement across multiple text strings.
-
-        Runs regex/heuristic detectors sequentially and uses spaCy nlp.pipe batching for NER.
-        """
-        results: List[Tuple[str, List[Entity]]] = []
-        ner_detector = None
-        other_detectors = []
-
-        for d in self._detectors:
-            if hasattr(d, "detect_batch"):
-                ner_detector = d
-            else:
-                other_detectors.append(d)
-
-        # Pre-allocate non-NER entities
-        batch_entities: List[List[Entity]] = [[] for _ in texts]
-        for idx, text in enumerate(texts):
-            stripped = text.strip()
-            if not stripped or len(stripped) < 3:
-                continue
-            clean_text = stripped.lower().replace(",", "").replace("%", "").replace("₹", "").replace("rs.", "").strip()
-            if clean_text.replace(".", "").replace("-", "").isdigit() or clean_text in config.NON_PII_STOPWORDS:
-                continue
-            for detector in other_detectors:
-                found = detector.detect(text)
-                batch_entities[idx].extend(found)
-
-        # Run NER batch if available
-        if ner_detector is not None:
-            ner_batch_results = ner_detector.detect_batch(texts)
-            for idx, ner_ents in enumerate(ner_batch_results):
-                batch_entities[idx].extend(ner_ents)
-
-        # Resolve entities and generate replacements per text snippet
-        for idx, text in enumerate(texts):
-            if not batch_entities[idx]:
-                results.append((text, []))
-                continue
-            resolved = self._resolver.resolve(batch_entities[idx])
-            if not resolved:
-                results.append((text, []))
-                continue
-            result_str = text
-            for entity in reversed(resolved):
-                fake = self._generator.get_replacement(entity.text, entity.label)
-                result_str = result_str[: entity.start] + fake + result_str[entity.end:]
-            results.append((result_str, resolved))
-
-        return results
-
     def get_replacement_map(self) -> dict:
         """Return the full {(original, label): fake} mapping from the generator."""
         return self._generator.get_full_map()

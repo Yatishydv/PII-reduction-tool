@@ -18,7 +18,9 @@ COPY . .
 
 # Environment setup
 ENV PORT=8000
+ENV MALLOC_ARENA_MAX=2
+ENV PYTHONOPTIMIZE=1
 EXPOSE 8000
 
 # Start FastAPI application
-CMD ["sh", "-c", "uvicorn api.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn api.app:app --host 0.0.0.0 --port ${PORT:-8000} --limit-max-requests 200 --timeout-keep-alive 5"]
