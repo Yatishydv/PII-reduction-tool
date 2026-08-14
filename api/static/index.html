@@ -1208,9 +1208,9 @@ curl -X POST "http://localhost:8000/redact" \
         }
       }, 100);
 
-      // AbortController timeout (20 seconds)
+      // AbortController timeout (60 seconds for Render free tier cold starts)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
         const res = await fetch('/analyze', { method: 'POST', body: formData, signal: controller.signal });
@@ -1460,6 +1460,11 @@ curl -X POST "http://localhost:8000/redact" \
       document.getElementById('textScanResultsWrapper').style.display = 'block';
       document.getElementById('textScanHighlighted').innerHTML = data.highlighted_html;
     }
+
+    // Silent background pre-warmup ping to prevent Render free tier cold starts
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('/health').catch(() => {});
+    });
   </script>
 </body>
 </html>
