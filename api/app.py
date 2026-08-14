@@ -157,8 +157,8 @@ async def analyze_document(file: UploadFile = File(...)):
         redacted_paragraphs = []
         replacements_dict = {}  # (original, label) -> {replacement, count}
 
-        # Process paragraphs
-        for p_idx, para in enumerate(doc.paragraphs):
+        # Process key paragraphs for fast interactive UI preview (first 200 paragraphs)
+        for p_idx, para in enumerate(doc.paragraphs[:200]):
             txt = para.text
             if not txt.strip():
                 continue
