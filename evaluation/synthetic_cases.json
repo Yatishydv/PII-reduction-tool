@@ -1,0 +1,112 @@
+[
+  {
+    "text": "john.doe@example.com",
+    "label": "EMAIL",
+    "context": "Please contact john.doe@example.com for further assistance."
+  },
+  {
+    "text": "rashi.patil@gmail.com",
+    "label": "EMAIL",
+    "context": "The applicant email is rashi.patil@gmail.com for correspondence."
+  },
+  {
+    "text": "admin+test@company.co.in",
+    "label": "EMAIL",
+    "context": "System admin can be reached at admin+test@company.co.in"
+  },
+  {
+    "text": "+91 9876543210",
+    "label": "PHONE",
+    "context": "Customer support: +91 9876543210"
+  },
+  {
+    "text": "+91-20-26234000",
+    "label": "PHONE",
+    "context": "Office telephone: +91-20-26234000"
+  },
+  {
+    "text": "+1 212 555 1234",
+    "label": "PHONE",
+    "context": "US contact number: +1 212 555 1234"
+  },
+  {
+    "text": "192.168.1.10",
+    "label": "IP_ADDRESS",
+    "context": "The server is located at IP address 192.168.1.10 on the internal network."
+  },
+  {
+    "text": "10.0.0.254",
+    "label": "IP_ADDRESS",
+    "context": "Gateway IP: 10.0.0.254 for network configuration."
+  },
+  {
+    "text": "203.0.113.42",
+    "label": "IP_ADDRESS",
+    "context": "Request originated from 203.0.113.42 according to logs."
+  },
+  {
+    "text": "123-45-6789",
+    "label": "SSN",
+    "context": "Employee SSN: 123-45-6789 as per HR records."
+  },
+  {
+    "text": "987-65-4321",
+    "label": "SSN",
+    "context": "Social Security Number: 987-65-4321"
+  },
+  {
+    "text": "4111 1111 1111 1111",
+    "label": "CREDIT_CARD",
+    "context": "Payment card on file: 4111 1111 1111 1111 (Visa)"
+  },
+  {
+    "text": "5500-0000-0000-0004",
+    "label": "CREDIT_CARD",
+    "context": "MasterCard ending in: 5500-0000-0000-0004"
+  },
+  {
+    "text": "12/05/1999",
+    "label": "DOB",
+    "context": "Date of Birth: 12/05/1999 as per official records."
+  },
+  {
+    "text": "01-Jan-1980",
+    "label": "DOB",
+    "context": "DOB: 01-Jan-1980 is recorded in the system."
+  },
+  {
+    "text": "March 15, 1990",
+    "label": "DOB",
+    "context": "Born on: March 15, 1990 per the birth certificate."
+  },
+  {
+    "text": "John Doe",
+    "label": "PERSON",
+    "context": "Contact Person: John Doe, Senior Manager at the company."
+  },
+  {
+    "text": "Priya Sharma",
+    "label": "PERSON",
+    "context": "Ms. Priya Sharma, Director of Operations, signed the agreement."
+  },
+  {
+    "text": "Rashi Patil",
+    "label": "PERSON",
+    "context": "Contact Person: Rashi Patil is the compliance officer."
+  },
+  {
+    "text": "Rohan Dey",
+    "label": "PERSON",
+    "context": "Mr. Rohan Dey, Managing Director, has submitted the application."
+  },
+  {
+    "text": "Apex Technologies Limited",
+    "label": "ORG",
+    "context": "Apex Technologies Limited is registered under the Companies Act, 2013."
+  },
+  {
+    "text": "Global Finance LLP",
+    "label": "ORG",
+    "context": "The auditors are Global Finance LLP, Chartered Accountants."
+  }
+]

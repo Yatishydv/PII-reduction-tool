@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+.git/
+.gitignore
+replacement_map.json
+*.docx
+!Red Herring Prospectus.docx

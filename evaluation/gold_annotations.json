@@ -1,0 +1,132 @@
+[
+  {
+    "text": "Sarthak Malvadkar",
+    "label": "PERSON",
+    "context": "Contact Person: Sarthak Malvadkar, Company Secretary and Compliance Officer; Telephone: + 91 20 4505 3237;"
+  },
+  {
+    "text": "Kushal Subbayya Hegde",
+    "label": "PERSON",
+    "context": "Kushal Subbayya Hegde, Chairman and Executive Director"
+  },
+  {
+    "text": "Rajesh Kushal Hegde",
+    "label": "PERSON",
+    "context": "Rajesh Kushal Hegde, Managing Director"
+  },
+  {
+    "text": "Rohit Kushal Hegde",
+    "label": "PERSON",
+    "context": "Rohit Kushal Hegde, Joint Managing Director"
+  },
+  {
+    "text": "Rakhi Girija Shetty",
+    "label": "PERSON",
+    "context": "Rakhi Girija Shetty, Whole-time Director"
+  },
+  {
+    "text": "Pushpa Kushal Hegde",
+    "label": "PERSON",
+    "context": "Pushpa Kushal Hegde is a Promoter of the Company"
+  },
+  {
+    "text": "Dinesh Hirachand Munot",
+    "label": "PERSON",
+    "context": "Dinesh Hirachand Munot, Independent Director"
+  },
+  {
+    "text": "cs.connect@kshinternational.com",
+    "label": "EMAIL",
+    "context": "E-mail: cs.connect@kshinternational.com; Website: www.kshinternational.com"
+  },
+  {
+    "text": "ksh.ipo@nuvama.com",
+    "label": "EMAIL",
+    "context": "E-mail: ksh.ipo@nuvama.com"
+  },
+  {
+    "text": "ksh@icicisecurities.com",
+    "label": "EMAIL",
+    "context": "E-mail: ksh@icicisecurities.com"
+  },
+  {
+    "text": "ipo@trilegal.com",
+    "label": "EMAIL",
+    "context": "E-mail: ipo@trilegal.com"
+  },
+  {
+    "text": "kshinternational.ipo@in.mpms.mufg.com",
+    "label": "EMAIL",
+    "context": "E-mail: kshinternational.ipo@in.mpms.mufg.com"
+  },
+  {
+    "text": "parag.pansare@kirtanepandit.com",
+    "label": "EMAIL",
+    "context": "E-mail: parag.pansare@kirtanepandit.com"
+  },
+  {
+    "text": "hitesh.ramani@citi.com",
+    "label": "EMAIL",
+    "context": "Contact Person: Hitesh Ramani; E-mail: hitesh.ramani@citi.com"
+  },
+  {
+    "text": "siddharth.jadhav@hdfcbank.com",
+    "label": "EMAIL",
+    "context": "Contact Person: Siddharth Jadhav; E-mail: siddharth.jadhav@hdfcbank.com"
+  },
+  {
+    "text": "+ 91 20 4505 3237",
+    "label": "PHONE",
+    "context": "Contact Person: Sarthak Malvadkar, Company Secretary and Compliance Officer; Telephone: + 91 20 4505 3237;"
+  },
+  {
+    "text": "+91 22 40094400",
+    "label": "PHONE",
+    "context": "Tel: +91 22 40094400"
+  },
+  {
+    "text": "+91 22 6807 7100",
+    "label": "PHONE",
+    "context": "Tel: +91 22 6807 7100"
+  },
+  {
+    "text": "+91 20 6606 4494",
+    "label": "PHONE",
+    "context": "Telephone: +91 20 6606 4494"
+  },
+  {
+    "text": "+91 81081 14949",
+    "label": "PHONE",
+    "context": "Tel: +91 81081 14949"
+  },
+  {
+    "text": "+ 91 20 6729 5100",
+    "label": "PHONE",
+    "context": "Telephone: + 91 20 6729 5100"
+  },
+  {
+    "text": "Nuvama Wealth Management Limited",
+    "label": "ORG",
+    "context": "Nuvama Wealth Management Limited, 801 - 804, Wing A, Building No 3, Inspire BKC"
+  },
+  {
+    "text": "ICICI Securities Limited",
+    "label": "ORG",
+    "context": "ICICI Securities Limited, ICICI Centre, H.T. Parekh Marg, Churchgate, Mumbai"
+  },
+  {
+    "text": "MUFG Intime India Private Limited",
+    "label": "ORG",
+    "context": "MUFG Intime India Private Limited (Formerly Link Intime India Private Limited)"
+  },
+  {
+    "text": "Kirtane & Pandit LLP",
+    "label": "ORG",
+    "context": "The current statutory auditors of our Company, being Kirtane & Pandit LLP, Chartered Accountants"
+  },
+  {
+    "text": "KSH International Limited",
+    "label": "ORG",
+    "context": "KSH International Limited, a public limited company incorporated under the Companies Act"
+  }
+]

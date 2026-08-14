@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PII Shield — Privacy Intelligence Tool</title>
+  <meta name="description" content="Production PII Redaction Engine — Detect & redact sensitive personal data instantly." />
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-app: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-sidebar: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      
+      --accent-orange: #f97316;
+      --accent-orange-hover: #ea580c;
+      --accent-orange-bg: #fff7ed;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      
+      /* PII Category Highlight Colors */
+      --tag-person: #dcfce7; --tag-person-text: #166534; --tag-person-border: #86efac;
+      --tag-email: #dbeafe; --tag-email-text: #1e40af; --tag-email-border: #93c5fd;
+      --tag-phone: #fef9c3; --tag-phone-text: #854d0e; --tag-phone-border: #fde047;
+      --tag-address: #f3e8ff; --tag-address-text: #6b21a8; --tag-address-border: #d8b4fe;
+      --tag-aadhaar: #fee2e2; --tag-aadhaar-text: #991b1b; --tag-aadhaar-border: #fca5a5;
+      --tag-pan: #fce7f3; --tag-pan-text: #9d174d; --tag-pan-border: #fbcfe8;
+      --tag-dob: #ffedd5; --tag-dob-text: #9a3412; --tag-dob-border: #fdba74;
+      --tag-bank: #e0e7ff; --tag-bank-text: #3730a3; --tag-bank-border: #a5b4fc;
+      --tag-ifsc: #ccfbf1; --tag-ifsc-text: #115e59; --tag-ifsc-border: #5eead4;
+      --tag-other: #f1f5f9; --tag-other-text: #334155; --tag-other-border: #cbd5e1;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sidebar: #182232;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      
+      --accent-orange-bg: rgba(249, 115, 22, 0.15);
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      
+      /* Dark mode PII highlights */
+      --tag-person: rgba(22, 101, 52, 0.4); --tag-person-text: #86efac; --tag-person-border: rgba(34, 197, 94, 0.4);
+      --tag-email: rgba(30, 64, 175, 0.4); --tag-email-text: #93c5fd; --tag-email-border: rgba(59, 130, 246, 0.4);
+      --tag-phone: rgba(133, 77, 14, 0.4); --tag-phone-text: #fde047; --tag-phone-border: rgba(234, 179, 8, 0.4);
+      --tag-address: rgba(107, 33, 168, 0.4); --tag-address-text: #d8b4fe; --tag-address-border: rgba(168, 85, 247, 0.4);
+      --tag-aadhaar: rgba(153, 27, 27, 0.4); --tag-aadhaar-text: #fca5a5; --tag-aadhaar-border: rgba(239, 68, 68, 0.4);
+      --tag-pan: rgba(157, 23, 77, 0.4); --tag-pan-text: #fbcfe8; --tag-pan-border: rgba(236, 72, 153, 0.4);
+      --tag-dob: rgba(154, 52, 18, 0.4); --tag-dob-text: #fdba74; --tag-dob-border: rgba(249, 115, 22, 0.4);
+      --tag-bank: rgba(55, 48, 163, 0.4); --tag-bank-text: #a5b4fc; --tag-bank-border: rgba(99, 102, 241, 0.4);
+      --tag-ifsc: rgba(17, 94, 89, 0.4); --tag-ifsc-text: #5eead4; --tag-ifsc-border: rgba(20, 184, 166, 0.4);
+      --tag-other: rgba(51, 65, 85, 0.4); --tag-other-text: #cbd5e1; --tag-other-border: rgba(100, 116, 139, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-app);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    /* SIDEBAR NAVIGATION */
+    aside.sidebar {
+      width: 260px;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1.2rem;
+      flex-shrink: 0;
+      transition: background 0.25s ease;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      padding: 0 0.5rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--accent-orange);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.25rem;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .brand-title span {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      list-style: none;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item a:hover {
+      background: rgba(148, 163, 184, 0.08);
+      color: var(--text-main);
+    }
+
+    .nav-item.active a {
+      background: var(--accent-orange-bg);
+      color: var(--accent-orange);
+      font-weight: 700;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      background: var(--accent-orange-bg);
+      border: 1px dashed var(--accent-orange);
+      border-radius: 14px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+
+    .sidebar-footer-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-orange);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .sidebar-footer h4 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+    .sidebar-footer p { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; line-height: 1.3; }
+
+    /* MAIN CONTAINER */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    header.topbar {
+      height: 65px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 2rem;
+      gap: 1.25rem;
+      transition: background 0.25s ease;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover { background: var(--border-color); }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.35rem;
+      border-radius: 8px;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-left: 0.75rem;
+      border-left: 1px solid var(--border-color);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: #0f172a;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .user-info h5 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); line-height: 1.1; }
+    .user-info span { font-size: 0.72rem; color: var(--text-muted); }
+
+    .content-viewport {
+      flex: 1;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.75rem;
+      align-items: start;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .workspace-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .workspace-header { margin-bottom: 1.25rem; }
+    .workspace-title { font-size: 1.2rem; font-weight: 800; color: var(--text-main); }
+    .workspace-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    .file-banner {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .file-banner-info { display: flex; align-items: center; gap: 0.85rem; }
+    .file-icon { font-size: 1.8rem; }
+    .file-name-text { font-size: 0.95rem; font-weight: 700; color: var(--text-main); }
+    .file-size-text { font-size: 0.75rem; color: var(--text-muted); }
+
+    .btn-action-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-choose-file {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-choose-file:hover { background: var(--border-color); }
+
+    .btn-clear-file {
+      display: none; /* Hidden until file is chosen */
+      background: var(--bg-card);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 0.55rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-clear-file:hover { background: rgba(239, 68, 68, 0.1); }
+
+    .btn-start-analyze {
+      display: none; /* Hidden by default until file is uploaded */
+      background: var(--accent-orange);
+      color: white;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-start-analyze:hover { background: var(--accent-orange-hover); }
+
+    /* Animated 0-100 Progress Loader */
+    .progress-container {
+      display: none;
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .progress-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-status-text { color: var(--text-main); }
+    .progress-percent-text { color: var(--accent-orange); font-family: 'JetBrains Mono', monospace; font-size: 1rem; }
+
+    .progress-bar-track {
+      width: 100%;
+      height: 10px;
+      background: var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #f97316, #ea580c);
+      border-radius: 10px;
+      transition: width 0.15s ease-out;
+    }
+
+    .doc-preview-wrapper {
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--bg-app);
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .doc-preview-toolbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
+    
+    .toolbar-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .toolbar-btn:hover { color: var(--text-main); background: var(--border-color); }
+    .toolbar-btn.active-tool { background: var(--accent-orange); color: white !important; }
+
+    .toolbar-toggle-pill {
+      background: var(--accent-orange-bg);
+      color: var(--accent-orange);
+      border: 1px solid var(--accent-orange);
+      padding: 0.35rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-left: 0.75rem;
+      transition: all 0.2s ease;
+    }
+
+    .toolbar-toggle-pill:hover {
+      background: var(--accent-orange);
+      color: white;
+    }
+
+    /* Fullscreen Modal Box Styling */
+    .doc-preview-wrapper.fullscreen-mode {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999;
+      border-radius: 0 !important;
+      background: var(--bg-card);
+      box-shadow: 0 0 50px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .doc-preview-wrapper.fullscreen-mode .doc-content-body {
+      flex: 1;
+      max-height: none !important;
+      height: calc(100vh - 55px) !important;
+    }
+
+    .doc-content-body {
+      padding: 2rem;
+      min-height: 420px;
+      max-height: 540px;
+      overflow-y: auto;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-main);
+      background: var(--bg-card);
+      transition: font-size 0.15s ease;
+      user-select: text;
+    }
+
+    .doc-paragraph { margin-bottom: 1rem; }
+
+    mark.pii-mark {
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: inline-block;
+      margin: 0 0.1rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    mark.pii-person { background: var(--tag-person); color: var(--tag-person-text); border-color: var(--tag-person-border); }
+    mark.pii-email { background: var(--tag-email); color: var(--tag-email-text); border-color: var(--tag-email-border); }
+    mark.pii-phone { background: var(--tag-phone); color: var(--tag-phone-text); border-color: var(--tag-phone-border); }
+    mark.pii-address { background: var(--tag-address); color: var(--tag-address-text); border-color: var(--tag-address-border); }
+    mark.pii-aadhaar { background: var(--tag-aadhaar); color: var(--tag-aadhaar-text); border-color: var(--tag-aadhaar-border); }
+    mark.pii-pan { background: var(--tag-pan); color: var(--tag-pan-text); border-color: var(--tag-pan-border); }
+    mark.pii-dob { background: var(--tag-dob); color: var(--tag-dob-text); border-color: var(--tag-dob-border); }
+    mark.pii-bank_account { background: var(--tag-bank); color: var(--tag-bank-text); border-color: var(--tag-bank-border); }
+    mark.pii-ifsc_code { background: var(--tag-ifsc); color: var(--tag-ifsc-text); border-color: var(--tag-ifsc-border); }
+    mark.pii-org { background: var(--tag-other); color: var(--tag-other-text); border-color: var(--tag-other-border); }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline:hover { background: var(--border-color); }
+
+    .btn-solid-orange {
+      background: var(--accent-orange);
+      color: white;
+      border: none;
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(249, 115, 22, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-solid-orange:hover {
+      background: var(--accent-orange-hover);
+      box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
+    }
+
+    .results-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+
+    .results-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+    .status-badge-completed {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      padding: 0.25rem 0.75rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .donut-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .donut-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent-orange) 0% 85%, var(--border-color) 85% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2);
+    }
+
+    .donut-inner {
+      width: 92px;
+      height: 92px;
+      background: var(--bg-card);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .donut-number { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+    .donut-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-top: 0.15rem; }
+
+    .category-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .category-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 6px;
+    }
+
+    .category-row:hover { background: var(--bg-app); }
+    .category-left { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: var(--text-main); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .dot-person { background: #22c55e; }
+    .dot-email { background: #3b82f6; }
+    .dot-phone { background: #eab308; }
+    .dot-address { background: #a855f7; }
+    .dot-aadhaar { background: #ef4444; }
+    .dot-pan { background: #ec4899; }
+    .dot-dob { background: #f97316; }
+    .dot-bank { background: #6366f1; }
+    .dot-ifsc { background: #14b8a6; }
+    .dot-other { background: #64748b; }
+
+    .category-count { font-weight: 700; color: var(--text-main); font-family: 'JetBrains Mono', monospace; }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .text-area-scan {
+      width: 100%;
+      min-height: 200px;
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+      resize: vertical;
+    }
+
+    .metrics-banner {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .metric-box {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .metric-num {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--accent-orange);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .metric-lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    .log-section {
+      margin-top: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .log-title { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+    .log-filter {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .log-table-wrapper {
+      max-height: 350px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+
+    .log-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .log-table th {
+      background: var(--bg-app);
+      color: var(--text-muted);
+      padding: 0.75rem 1rem;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .log-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .log-table tr:hover { background: var(--bg-app); }
+    .label-badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body data-theme="light">
+
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🛡️</div>
+      <div class="brand-title">
+        PII Shield
+        <span>Privacy Intelligence Tool</span>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item active" onclick="switchNav('scan-doc', this)">
+        <a href="#"><span class="nav-icon">🛡️</span> Scan Document</a>
+      </li>
+      <li class="nav-item" onclick="switchNav('scan-text', this)">
+        <a href="#"><span class="nav-icon">📝</span> Scan Text</a>
+      </li>
+      <li class="nav-item" onclick="switchNav('metrics', this)">
+        <a href="#"><span class="nav-icon">📊</span> Evaluation Metrics</a>
+      </li>
+      <li class="nav-item" onclick="switchNav('api', this)">
+        <a href="#"><span class="nav-icon">⚡</span> API Integration</a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-icon">🛡️</div>
+      <h4>Your data is safe</h4>
+      <p>All processing is done securely locally and your data is never stored.</p>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-wrapper">
+    
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Mode">
+        🌙
+      </button>
+      
+      <button class="icon-btn" title="Notifications">🔔</button>
+
+      <div class="user-profile">
+        <div class="user-avatar">YK</div>
+        <div class="user-info">
+          <h5>Yatish Kumar</h5>
+          <span>12301342</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT VIEWPORT -->
+    <div class="content-viewport">
+      
+      <!-- TAB 1: SCAN DOCUMENT -->
+      <div id="pane-scan-doc" class="tab-pane active" style="grid-column: span 2; display: grid; grid-template-columns: 1fr 340px; gap: 1.75rem;">
+        
+        <!-- Center Workspace -->
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <h2 class="workspace-title">Scan Document</h2>
+            <p class="workspace-subtitle">Upload a document to detect and redact PII</p>
+          </div>
+
+          <!-- File Banner -->
+          <div class="file-banner" id="fileBanner">
+            <div class="file-banner-info">
+              <span class="file-icon">📄</span>
+              <div>
+                <div class="file-name-text" id="fileNameText">Select a .docx document to analyze</div>
+                <div class="file-size-text" id="fileSizeText">Supported format: Microsoft Word (.docx)</div>
+              </div>
+            </div>
+            
+            <div class="btn-action-group">
+              <button class="btn-choose-file" id="btnChooseFile" onclick="triggerFileInput()">
+                <span>📁</span> Choose File
+              </button>
+              <button class="btn-clear-file" id="btnClearFile" onclick="clearSelectedFile()">
+                <span>❌</span> Remove
+              </button>
+              <button class="btn-start-analyze" id="btnStartAnalyze" onclick="startAnalysisWorkflow()">
+                <span>🔍</span> Analyze Document
+              </button>
+            </div>
+            <input type="file" id="docFileInput" accept=".docx" style="display:none" />
+          </div>
+
+          <!-- Animated 0% -> 100% Linear Progress Bar -->
+          <div class="progress-container" id="progressContainer">
+            <div class="progress-info">
+              <span class="progress-status-text" id="progressStatusText">Initializing document stream...</span>
+              <span class="progress-percent-text" id="progressPercentText">0%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+          </div>
+
+          <!-- Document Viewer Container -->
+          <div class="doc-preview-wrapper" id="docPreviewWrapper">
+            <div class="doc-preview-toolbar">
+              <div class="toolbar-left">
+                <button class="toolbar-btn" onclick="prevPage()" title="Previous Page">◀</button>
+                <span id="pageCounter" style="font-weight:700; font-family:'JetBrains Mono',monospace;">Page 1 / 1</span>
+                <button class="toolbar-btn" onclick="nextPage()" title="Next Page">▶</button>
+                
+                <!-- Toggle Button Moved Directly INSIDE the Document Viewer Box Toolbar! -->
+                <button class="toolbar-toggle-pill" id="btnTogglePreview" onclick="toggleRedactedPreview()">
+                  👁️ View Redacted Preview
+                </button>
+              </div>
+              
+              <div class="toolbar-right">
+                <button class="toolbar-btn" onclick="zoomOut()" title="Zoom Out (−)">−</button>
+                <button class="toolbar-btn" onclick="resetZoom()" id="zoomPercentText" title="Reset Zoom (100%)" style="font-family:'JetBrains Mono',monospace; font-weight:700;">100%</button>
+                <button class="toolbar-btn" onclick="zoomIn()" title="Zoom In (+)">+</button>
+                <button class="toolbar-btn" id="btnPanTool" onclick="togglePanTool()" title="Toggle Hand / Pan Drag Tool">✋</button>
+                <button class="toolbar-btn" onclick="quickDownload()" title="Quick Download Redacted DOCX">📥</button>
+                <button class="toolbar-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen Box View">⛶</button>
+              </div>
+            </div>
+
+            <!-- Live Document Viewer Body -->
+            <div class="doc-content-body" id="docContentBody">
+              <div style="text-align: center; color: var(--text-muted); padding: 4rem;">
+                📄 Please click <strong>"Choose File"</strong> to upload a .docx document.
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Actions -->
+          <div class="action-row">
+            <button class="btn-outline" id="btnDownloadOriginal">
+              <span>📥</span> Download Original
+            </button>
+            <button class="btn-solid-orange" id="btnDownloadRedacted">
+              <span>🛡️</span> Download Redacted
+            </button>
+          </div>
+
+          <!-- Dynamic Evaluation Metrics Section -->
+          <div class="metrics-banner">
+            <div class="metric-box">
+              <div class="metric-num" id="dynPrecision">—</div>
+              <div class="metric-lbl">Precision</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-num" id="dynRecall">—</div>
+              <div class="metric-lbl">Recall</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-num" id="dynF1">—</div>
+              <div class="metric-lbl">F1 Score</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-num" id="dynAccuracy">—</div>
+              <div class="metric-lbl">Accuracy</div>
+            </div>
+          </div>
+
+          <!-- Full Redaction Mapping Log Table -->
+          <div class="log-section">
+            <div class="log-header">
+              <h3 class="log-title">📋 Full Document Redaction & Replacement Mapping Log</h3>
+              <select class="log-filter" id="logFilterSelect" onchange="filterLogTable()">
+                <option value="ALL">All Categories</option>
+                <option value="PERSON">PERSON</option>
+                <option value="EMAIL">EMAIL</option>
+                <option value="PHONE">PHONE</option>
+                <option value="ADDRESS">ADDRESS</option>
+                <option value="ORG">ORG</option>
+                <option value="PAN">PAN</option>
+                <option value="AADHAAR">AADHAAR</option>
+                <option value="BANK_ACCOUNT">BANK_ACCOUNT</option>
+                <option value="IFSC_CODE">IFSC_CODE</option>
+                <option value="DOB">DOB</option>
+              </select>
+            </div>
+            <div class="log-table-wrapper">
+              <table class="log-table">
+                <thead>
+                  <tr>
+                    <th>Original PII Entity</th>
+                    <th>Category</th>
+                    <th>Synthetic Replacement Value</th>
+                    <th>Count</th>
+                  </tr>
+                </thead>
+                <tbody id="logTableBody">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                      Select a file and click "Analyze Document" to view replacement details.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Scan Results Panel -->
+        <div class="results-card">
+          <div class="results-header">
+            <h3 class="results-title">Scan Results</h3>
+            <span class="status-badge-completed" id="statusBadge" style="background: rgba(148,163,184,0.15); color: var(--text-muted);">Ready</span>
+          </div>
+
+          <!-- Donut Progress Badge -->
+          <div class="donut-container">
+            <div class="donut-circle" id="donutCircle">
+              <div class="donut-inner">
+                <div class="donut-number" id="donutNumber">0</div>
+                <div class="donut-label">Total</div>
+              </div>
+            </div>
+            <div style="font-size: 0.85rem; font-weight: 700; margin-top: 0.75rem; color: var(--text-main);">
+              PII Detected
+            </div>
+          </div>
+
+          <!-- Category Breakdown List -->
+          <div class="category-list" id="categoryList">
+            <div class="category-row"><div class="category-left"><span class="dot dot-person"></span> PERSON</div><div class="category-count" id="count-person">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-email"></span> EMAIL</div><div class="category-count" id="count-email">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-phone"></span> PHONE</div><div class="category-count" id="count-phone">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-address"></span> ADDRESS</div><div class="category-count" id="count-address">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-aadhaar"></span> AADHAAR</div><div class="category-count" id="count-aadhaar">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-pan"></span> PAN</div><div class="category-count" id="count-pan">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-dob"></span> DATE_OF_BIRTH</div><div class="category-count" id="count-dob">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-bank"></span> BANK_ACCOUNT</div><div class="category-count" id="count-bank">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-ifsc"></span> IFSC_CODE</div><div class="category-count" id="count-ifsc">0</div></div>
+            <div class="category-row"><div class="category-left"><span class="dot dot-other"></span> OTHER (ORG)</div><div class="category-count" id="count-other">0</div></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: SCAN TEXT -->
+      <div id="pane-scan-text" class="tab-pane" style="grid-column: span 2;">
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <h2 class="workspace-title">Scan Text Snippet</h2>
+            <p class="workspace-subtitle">Paste any text block below to detect and highlight PII entities live.</p>
+          </div>
+
+          <textarea class="text-area-scan" id="scanInputText" placeholder="Enter text containing names, emails, phones, PAN, Aadhaar, DOB, bank accounts..."></textarea>
+          
+          <button class="btn-solid-orange" style="width: 200px;" onclick="processTextScan()">
+            🛡️ Scan Text Now
+          </button>
+
+          <div style="margin-top: 1.5rem;" id="textScanResultsWrapper" style="display:none">
+            <h4 style="margin-bottom: 0.5rem;">Highlighted Detection Preview:</h4>
+            <div class="doc-preview-wrapper" style="padding: 1.25rem;" id="textScanHighlighted"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: EVALUATION METRICS -->
+      <div id="pane-metrics" class="tab-pane" style="grid-column: span 2;">
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <h2 class="workspace-title">Model Evaluation Benchmark Report</h2>
+            <p class="workspace-subtitle">Empirical performance metrics computed on Gold Annotations and Synthetic test datasets.</p>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted); font-size: 0.85rem;">
+                  <th style="padding: 0.75rem;">PII TYPE</th>
+                  <th style="padding: 0.75rem;">TP</th>
+                  <th style="padding: 0.75rem;">FP</th>
+                  <th style="padding: 0.75rem;">FN</th>
+                  <th style="padding: 0.75rem;">PRECISION</th>
+                  <th style="padding: 0.75rem;">RECALL</th>
+                  <th style="padding: 0.75rem;">F1 SCORE</th>
+                </tr>
+              </thead>
+              <tbody style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;">
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 0.75rem;"><strong>EMAIL</strong></td><td>8</td><td>0</td><td>0</td><td>1.0000</td><td>1.0000</td><td>1.0000</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 0.75rem;"><strong>PHONE</strong></td><td>6</td><td>1</td><td>0</td><td>0.8571</td><td>1.0000</td><td>0.9231</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 0.75rem;"><strong>PERSON</strong></td><td>5</td><td>2</td><td>2</td><td>0.7143</td><td>0.7143</td><td>0.7143</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                  <td style="padding: 0.75rem;"><strong>ORG</strong></td><td>4</td><td>3</td><td>1</td><td>0.5714</td><td>0.8000</td><td>0.6667</td>
+                </tr>
+                <tr style="background: var(--accent-orange-bg); font-weight: 700;">
+                  <td style="padding: 0.75rem;">OVERALL METRIC</td><td>23</td><td>6</td><td>3</td><td>0.7931</td><td>0.8846</td><td>0.8364</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: API -->
+      <div id="pane-api" class="tab-pane" style="grid-column: span 2;">
+        <div class="workspace-card">
+          <div class="workspace-header">
+            <h2 class="workspace-title">API Integration</h2>
+            <p class="workspace-subtitle">REST endpoints for document redaction and analysis.</p>
+          </div>
+          <pre style="background: var(--bg-app); padding: 1rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; overflow-x: auto;">
+curl -X POST "http://localhost:8000/redact" \
+  -F "file=@document.docx" \
+  --output "redacted_output.docx"
+          </pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    let currentTheme = 'light';
+
+    themeToggleBtn.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', currentTheme);
+      themeToggleBtn.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+    });
+
+    function switchNav(paneId, clickedEl) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      const target = document.getElementById('pane-' + paneId);
+      if (target) target.classList.add('active');
+      clickedEl.classList.add('active');
+    }
+
+    const docFileInput = document.getElementById('docFileInput');
+    function triggerFileInput() {
+      docFileInput.click();
+    }
+
+    // State Variables
+    let allPreviewParagraphs = [];
+    let allRedactedParagraphs = [];
+    let allReplacements = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    const PARAS_PER_PAGE = 10;
+    let isShowingRedacted = false;
+
+    // Interactive Toolbar Control Variables
+    let currentZoom = 100;
+    let isPanMode = false;
+    let isMouseDown = false;
+    let startX, startY, scrollLeft, scrollTop;
+
+    docFileInput.addEventListener('change', () => {
+      const btnChoose = document.getElementById('btnChooseFile');
+      const btnClear = document.getElementById('btnClearFile');
+      const btnAnalyze = document.getElementById('btnStartAnalyze');
+      
+      if (docFileInput.files[0]) {
+        const file = docFileInput.files[0];
+        document.getElementById('fileNameText').textContent = file.name;
+        document.getElementById('fileSizeText').textContent = (file.size / 1024).toFixed(1) + ' KB · File selected';
+        
+        btnChoose.style.display = 'none';
+        btnClear.style.display = 'inline-flex';
+        btnAnalyze.style.display = 'inline-flex';
+        btnAnalyze.disabled = false;
+        
+        document.getElementById('docContentBody').innerHTML = `
+          <div style="text-align: center; color: var(--text-muted); padding: 4rem;">
+            📄 File loaded: <strong>${escapeHtml(file.name)}</strong>.<br />
+            Click <strong>"Analyze Document"</strong> above to start scanning for PII entities.
+          </div>
+        `;
+      } else {
+        clearSelectedFile();
+      }
+    });
+
+    function clearSelectedFile() {
+      docFileInput.value = '';
+      document.getElementById('fileNameText').textContent = 'Select a .docx document to analyze';
+      document.getElementById('fileSizeText').textContent = 'Supported format: Microsoft Word (.docx)';
+      
+      document.getElementById('btnChooseFile').style.display = 'inline-flex';
+      document.getElementById('btnClearFile').style.display = 'none';
+      document.getElementById('btnStartAnalyze').style.display = 'none';
+      
+      document.getElementById('docContentBody').innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 4rem;">
+          📄 Please click <strong>"Choose File"</strong> to upload a .docx document.
+        </div>
+      `;
+    }
+
+    // Workflow: Clicking "Analyze Document" starts smooth dynamic progress 0% -> 100%
+    async function startAnalysisWorkflow() {
+      if (!docFileInput.files[0]) return;
+      const file = docFileInput.files[0];
+      
+      const btnAnalyze = document.getElementById('btnStartAnalyze');
+      btnAnalyze.disabled = true;
+
+      const progressContainer = document.getElementById('progressContainer');
+      const progressFill = document.getElementById('progressBarFill');
+      const progressPercentText = document.getElementById('progressPercentText');
+      const progressStatusText = document.getElementById('progressStatusText');
+      
+      progressContainer.style.display = 'block';
+      document.getElementById('statusBadge').textContent = 'Analyzing...';
+      document.getElementById('statusBadge').style.background = 'rgba(249,115,22,0.15)';
+      document.getElementById('statusBadge').style.color = '#f97316';
+
+      const updateProgress = (pct, statusText) => {
+        progressFill.style.width = pct + '%';
+        progressPercentText.textContent = pct + '%';
+        if (statusText) progressStatusText.textContent = statusText;
+      };
+
+      updateProgress(10, 'Uploading document stream to PII Shield backend...');
+      
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Smooth continuous ticker that animates progress during processing
+      let currentStage = 10;
+      const progressTicker = setInterval(() => {
+        if (currentStage < 95) {
+          currentStage += Math.floor(Math.random() * 4) + 1;
+          if (currentStage > 95) currentStage = 95;
+          
+          let stageMsg = 'Parsing XML paragraphs & table structures...';
+          if (currentStage > 40) stageMsg = 'Running spaCy NER & RFC-5321 / Luhn detectors...';
+          if (currentStage > 70) stageMsg = 'Resolving overlapping entities & generating synthetic replacements...';
+          
+          updateProgress(currentStage, stageMsg);
+        }
+      }, 120);
+
+      try {
+        const res = await fetch('/analyze', { method: 'POST', body: formData });
+        clearInterval(progressTicker);
+
+        if (!res.ok) throw new Error('Analysis request failed');
+
+        const data = await res.json();
+
+        updateProgress(100, 'Analysis complete!');
+        await new Promise(r => setTimeout(r, 200));
+        
+        progressContainer.style.display = 'none';
+        document.getElementById('statusBadge').textContent = 'Completed';
+        document.getElementById('statusBadge').style.background = 'rgba(34,197,94,0.15)';
+        document.getElementById('statusBadge').style.color = '#22c55e';
+        document.getElementById('fileSizeText').textContent = (file.size / 1024).toFixed(1) + ' KB · Analyzed';
+        
+        document.getElementById('donutNumber').textContent = data.total_entities.toLocaleString();
+
+        allPreviewParagraphs = data.preview_paragraphs || [];
+        allRedactedParagraphs = data.redacted_paragraphs || [];
+        allReplacements = data.replacements || [];
+
+        totalPages = Math.max(1, Math.ceil(allPreviewParagraphs.length / PARAS_PER_PAGE));
+        currentPage = 1;
+        renderCurrentPage();
+
+        // Update Category Counts
+        const tc = data.type_counts || {};
+        document.getElementById('count-person').textContent = tc.PERSON || 0;
+        document.getElementById('count-email').textContent = tc.EMAIL || 0;
+        document.getElementById('count-phone').textContent = tc.PHONE || 0;
+        document.getElementById('count-address').textContent = tc.ADDRESS || 0;
+        document.getElementById('count-aadhaar').textContent = tc.AADHAAR || 0;
+        document.getElementById('count-pan').textContent = tc.PAN || 0;
+        document.getElementById('count-dob').textContent = tc.DOB || 0;
+        document.getElementById('count-bank').textContent = tc.BANK_ACCOUNT || 0;
+        document.getElementById('count-ifsc').textContent = tc.IFSC_CODE || 0;
+        document.getElementById('count-other').textContent = (tc.ORG || 0) + (tc.CIN || 0) + (tc.DIN || 0);
+
+        // Update Dynamic Metrics
+        const m = data.dynamic_metrics || {};
+        document.getElementById('dynPrecision').textContent = m.precision || '—';
+        document.getElementById('dynRecall').textContent = m.recall || '—';
+        document.getElementById('dynF1').textContent = m.f1_score || '—';
+        document.getElementById('dynAccuracy').textContent = m.accuracy || '—';
+
+        // Render Change Log Table
+        renderLogTable(allReplacements);
+
+      } catch (err) {
+        clearInterval(progressTicker);
+        progressContainer.style.display = 'none';
+        btnAnalyze.disabled = false;
+        alert('File Analysis Error: ' + err.message);
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // TOOLBAR INTERACTIVE CONTROLS (Zoom, Pan, Quick Download, Fullscreen)
+    // ------------------------------------------------------------------
+    function zoomOut() {
+      if (currentZoom > 50) {
+        currentZoom -= 10;
+        applyZoom();
+      }
+    }
+
+    function zoomIn() {
+      if (currentZoom < 200) {
+        currentZoom += 10;
+        applyZoom();
+      }
+    }
+
+    function resetZoom() {
+      currentZoom = 100;
+      applyZoom();
+    }
+
+    function applyZoom() {
+      const body = document.getElementById('docContentBody');
+      body.style.fontSize = (0.95 * (currentZoom / 100)) + 'rem';
+      document.getElementById('zoomPercentText').textContent = currentZoom + '%';
+    }
+
+    function togglePanTool() {
+      isPanMode = !isPanMode;
+      const btn = document.getElementById('btnPanTool');
+      const body = document.getElementById('docContentBody');
+      if (isPanMode) {
+        btn.classList.add('active-tool');
+        body.style.cursor = 'grab';
+      } else {
+        btn.classList.remove('active-tool');
+        body.style.cursor = 'default';
+      }
+    }
+
+    const docBody = document.getElementById('docContentBody');
+    docBody.addEventListener('mousedown', (e) => {
+      if (!isPanMode) return;
+      isMouseDown = true;
+      docBody.style.cursor = 'grabbing';
+      startX = e.pageX - docBody.offsetLeft;
+      startY = e.pageY - docBody.offsetTop;
+      scrollLeft = docBody.scrollLeft;
+      scrollTop = docBody.scrollTop;
+    });
+
+    docBody.addEventListener('mouseleave', () => {
+      isMouseDown = false;
+      if (isPanMode) docBody.style.cursor = 'grab';
+    });
+
+    docBody.addEventListener('mouseup', () => {
+      isMouseDown = false;
+      if (isPanMode) docBody.style.cursor = 'grab';
+    });
+
+    docBody.addEventListener('mousemove', (e) => {
+      if (!isMouseDown || !isPanMode) return;
+      e.preventDefault();
+      const x = e.pageX - docBody.offsetLeft;
+      const y = e.pageY - docBody.offsetTop;
+      const walkX = (x - startX) * 1.5;
+      const walkY = (y - startY) * 1.5;
+      docBody.scrollLeft = scrollLeft - walkX;
+      docBody.scrollTop = scrollTop - walkY;
+    });
+
+    function quickDownload() {
+      document.getElementById('btnDownloadRedacted').click();
+    }
+
+    function toggleFullscreen() {
+      const wrapper = document.getElementById('docPreviewWrapper');
+      wrapper.classList.toggle('fullscreen-mode');
+    }
+
+    function renderCurrentPage() {
+      const start = (currentPage - 1) * PARAS_PER_PAGE;
+      const end = start + PARAS_PER_PAGE;
+      const paragraphsToRender = isShowingRedacted ? allRedactedParagraphs.slice(start, end) : allPreviewParagraphs.slice(start, end);
+
+      const body = document.getElementById('docContentBody');
+      if (paragraphsToRender.length === 0) {
+        body.innerHTML = '<div style="text-align:center; padding:2rem; color:var(--text-muted)">No paragraphs on this page.</div>';
+      } else {
+        body.innerHTML = paragraphsToRender.map(p => `<div class="doc-paragraph">${p}</div>`).join('');
+      }
+
+      document.getElementById('pageCounter').textContent = `Page ${currentPage} / ${totalPages}`;
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderCurrentPage();
+      }
+    }
+
+    function nextPage() {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderCurrentPage();
+      }
+    }
+
+    function toggleRedactedPreview() {
+      if (!allPreviewParagraphs.length) return;
+      isShowingRedacted = !isShowingRedacted;
+      const btn = document.getElementById('btnTogglePreview');
+      btn.textContent = isShowingRedacted ? '🔍 View Original Highlighted' : '👁️ View Redacted Preview';
+      renderCurrentPage();
+    }
+
+    function renderLogTable(list) {
+      const tbody = document.getElementById('logTableBody');
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:1rem; color:var(--text-muted)">No entities replaced.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(item => `
+        <tr>
+          <td><strong style="color:var(--text-main)">${escapeHtml(item.original)}</strong></td>
+          <td><span class="label-badge pii-${item.label.toLowerCase()}">${item.label}</span></td>
+          <td style="color:var(--accent-orange)">${escapeHtml(item.replacement)}</td>
+          <td><span style="background:var(--bg-app); padding:0.15rem 0.5rem; border-radius:4px">${item.count}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function filterLogTable() {
+      const filter = document.getElementById('logFilterSelect').value;
+      if (filter === 'ALL') {
+        renderLogTable(allReplacements);
+      } else {
+        const filtered = allReplacements.filter(r => r.label === filter);
+        renderLogTable(filtered);
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Download Actions
+    document.getElementById('btnDownloadRedacted').addEventListener('click', async () => {
+      const file = docFileInput.files[0];
+      const formData = new FormData();
+      if (file) {
+        formData.append('file', file);
+      } else {
+        alert('Please select a .docx file first.');
+        return;
+      }
+
+      const res = await fetch('/redact', { method: 'POST', body: formData });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'redacted_' + file.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    async function processTextScan() {
+      const txt = document.getElementById('scanInputText').value;
+      if (!txt.trim()) return;
+
+      const formData = new FormData();
+      formData.append('text', txt);
+
+      const res = await fetch('/scan-text', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      document.getElementById('textScanResultsWrapper').style.display = 'block';
+      document.getElementById('textScanHighlighted').innerHTML = data.highlighted_html;
+    }
+  </script>
+</body>
+</html>

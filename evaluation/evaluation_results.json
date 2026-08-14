@@ -1,0 +1,162 @@
+{
+  "gold": {
+    "PHONE": {
+      "label": "PHONE",
+      "TP": 6,
+      "FP": 1,
+      "FN": 0,
+      "TN": 0,
+      "precision": 0.8571,
+      "recall": 1.0,
+      "f1": 0.9231,
+      "accuracy": 0.8571
+    },
+    "PERSON": {
+      "label": "PERSON",
+      "TP": 5,
+      "FP": 2,
+      "FN": 2,
+      "TN": 0,
+      "precision": 0.7143,
+      "recall": 0.7143,
+      "f1": 0.7143,
+      "accuracy": 0.5556
+    },
+    "ORG": {
+      "label": "ORG",
+      "TP": 4,
+      "FP": 3,
+      "FN": 1,
+      "TN": 0,
+      "precision": 0.5714,
+      "recall": 0.8,
+      "f1": 0.6667,
+      "accuracy": 0.5
+    },
+    "EMAIL": {
+      "label": "EMAIL",
+      "TP": 8,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "OVERALL": {
+      "label": "OVERALL",
+      "TP": 23,
+      "FP": 6,
+      "FN": 3,
+      "TN": 0,
+      "precision": 0.7931,
+      "recall": 0.8846,
+      "f1": 0.8364,
+      "accuracy": 0.7188
+    }
+  },
+  "synthetic": {
+    "EMAIL": {
+      "label": "EMAIL",
+      "TP": 3,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "IP_ADDRESS": {
+      "label": "IP_ADDRESS",
+      "TP": 3,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "DOB": {
+      "label": "DOB",
+      "TP": 3,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "PERSON": {
+      "label": "PERSON",
+      "TP": 4,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "SSN": {
+      "label": "SSN",
+      "TP": 2,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "PHONE": {
+      "label": "PHONE",
+      "TP": 2,
+      "FP": 0,
+      "FN": 1,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 0.6667,
+      "f1": 0.8,
+      "accuracy": 0.6667
+    },
+    "ORG": {
+      "label": "ORG",
+      "TP": 2,
+      "FP": 6,
+      "FN": 0,
+      "TN": 0,
+      "precision": 0.25,
+      "recall": 1.0,
+      "f1": 0.4,
+      "accuracy": 0.25
+    },
+    "CREDIT_CARD": {
+      "label": "CREDIT_CARD",
+      "TP": 2,
+      "FP": 0,
+      "FN": 0,
+      "TN": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "accuracy": 1.0
+    },
+    "OVERALL": {
+      "label": "OVERALL",
+      "TP": 21,
+      "FP": 6,
+      "FN": 1,
+      "TN": 0,
+      "precision": 0.7778,
+      "recall": 0.9545,
+      "f1": 0.8571,
+      "accuracy": 0.75
+    }
+  },
+  "false_positives_count": 12,
+  "false_negatives_count": 4
+}
