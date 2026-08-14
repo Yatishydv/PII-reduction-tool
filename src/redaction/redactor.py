@@ -57,6 +57,19 @@ class Redactor:
         Returns:
             Non-overlapping list of :class:`Entity` objects.
         """
+        stripped = text.strip()
+        if not stripped or len(stripped) < 3:
+            return []
+
+        # Fast-Path Check: Skip if text is pure number / percentage / currency amount / table dash
+        # Examples: "100.00", "50.5%", "1,250.00", "₹7,100", "10", "-", "Nil"
+        clean_text = stripped.lower().replace(",", "").replace("%", "").replace("₹", "").replace("rs.", "").strip()
+        if clean_text.replace(".", "").replace("-", "").isdigit():
+            return []
+
+        if clean_text in config.NON_PII_STOPWORDS:
+            return []
+
         all_entities: List[Entity] = []
         for detector in self._detectors:
             found = detector.detect(text)

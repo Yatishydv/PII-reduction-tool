@@ -192,24 +192,31 @@ async def analyze_document(file: UploadFile = File(...)):
             preview_paragraphs.append(para_html)
             redacted_paragraphs.append(redacted)
 
-        # Process tables for counts and replacements
+        # Process tables for counts and replacements with caching for unique cell texts
+        table_cell_cache = {}
         for table in doc.tables:
             for row in table.rows:
                 for cell in row.cells:
-                    if cell.text.strip():
-                        _, entities = _redactor.redact(cell.text)
-                        all_detected_entities.extend(entities)
-                        for ent in entities:
-                            repl = _redactor.generator.get_replacement(ent.text, ent.label)
-                            key = (ent.text.strip(), ent.label)
-                            if key not in replacements_dict:
-                                replacements_dict[key] = {
-                                    "original": ent.text.strip(),
-                                    "label": ent.label,
-                                    "replacement": repl,
-                                    "count": 0,
-                                }
-                            replacements_dict[key]["count"] += 1
+                    cell_str = cell.text.strip()
+                    if not cell_str:
+                        continue
+                    if cell_str not in table_cell_cache:
+                        _, entities = _redactor.redact(cell_str)
+                        table_cell_cache[cell_str] = entities
+
+                    entities = table_cell_cache[cell_str]
+                    all_detected_entities.extend(entities)
+                    for ent in entities:
+                        repl = _redactor.generator.get_replacement(ent.text, ent.label)
+                        key = (ent.text.strip(), ent.label)
+                        if key not in replacements_dict:
+                            replacements_dict[key] = {
+                                "original": ent.text.strip(),
+                                "label": ent.label,
+                                "replacement": repl,
+                                "count": 0,
+                            }
+                        replacements_dict[key]["count"] += 1
 
         type_counts = Counter(e.label for e in all_detected_entities)
         total_count = len(all_detected_entities)
